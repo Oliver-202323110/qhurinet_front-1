@@ -1,0 +1,50 @@
+<section class="page-stack">
+  @if (cargando) {
+    <p class="loading-text">Cargando publicación...</p>
+  } @else if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  } @else if (detalle) {
+    <div class="page-heading">
+      <div>
+        <span class="section-tag">Detalle del punto</span>
+        <h2>{{ detalle.publicacion.titulo }}</h2>
+        <p>{{ detalle.publicacion.direccion || 'Dirección no registrada' }}</p>
+      </div>
+      @if (puedeEditar()) {
+        <a class="btn btn-primary" [routerLink]="['/publicaciones/editar', detalle.publicacion.id]">Editar</a>
+      }
+    </div>
+
+    <div class="two-column">
+      <section class="panel">
+        <span class="status-chip" [class.inactive]="!detalle.publicacion.activo">
+          {{ detalle.publicacion.activo ? 'disponible' : 'inactiva' }}
+        </span>
+        <p>{{ detalle.publicacion.descripcion || 'Sin descripción disponible.' }}</p>
+        <dl class="detail-list">
+          <div><dt>Propietario</dt><dd>{{ detalle.publicacion.usuarioNombre }}</dd></div>
+          <div><dt>Categoría</dt><dd>{{ detalle.publicacion.categoria }}</dd></div>
+          <div><dt>Material</dt><dd>{{ detalle.publicacion.material }}</dd></div>
+          <div><dt>Ubicación</dt><dd>{{ detalle.publicacion.latitud }}, {{ detalle.publicacion.longitud }}</dd></div>
+          <div><dt>Fecha visible</dt><dd>{{ detalle.publicacion.createdAt | date: 'dd/MM/yyyy HH:mm' }}</dd></div>
+        </dl>
+        <small class="muted">Observaciones, imagen y fecha de disponibilidad no vienen en el DTO de detalle actual.</small>
+      </section>
+
+      <section class="panel">
+        <h3>Materiales</h3>
+        @if (detalle.materiales.length === 0) {
+          <p class="muted">Sin materiales asociados.</p>
+        } @else {
+          <div class="chip-row">
+            @for (material of detalle.materiales; track material.idMaterial) {
+              <span class="material-chip">
+                {{ material.nombreMaterial }} · {{ material.cantidad }} {{ material.unidad }} · {{ material.puntosEstimados }} pts
+              </span>
+            }
+          </div>
+        }
+      </section>
+    </div>
+  }
+</section>

@@ -1,0 +1,71 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <span class="section-tag">Dinero</span>
+      <h2>Transacciones de dinero</h2>
+      <p>Consulta montos, conceptos y estados asociados a tus servicios.</p>
+    </div>
+    <select class="toolbar-select" [(ngModel)]="filtroEstado">
+      <option value="">Todos los estados</option>
+      <option value="pendiente">Pendiente</option>
+      <option value="completada">Completada</option>
+      <option value="rechazada">Rechazada</option>
+    </select>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+
+  @if (cargando) {
+    <p class="loading-text">Cargando transacciones...</p>
+  } @else if (filtradas.length === 0) {
+    <div class="empty-state">
+      <strong>No hay transacciones para mostrar.</strong>
+      <span>Cuando existan movimientos aparecerán en esta sección.</span>
+    </div>
+  } @else {
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Concepto</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Monto</th>
+            <th>Acción</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tx of filtradas; track tx.id) {
+            <tr>
+              <td>{{ tx.createdAt | date: 'dd/MM/yyyy HH:mm' }}</td>
+              <td>{{ tx.concepto || 'Sin concepto' }}</td>
+              <td>{{ tx.tipo }}</td>
+              <td><span class="status-chip">{{ tx.estado || 'sin estado' }}</span></td>
+              <td>{{ tx.monto | currency: tx.moneda || 'PEN' : 'symbol' : '1.2-2' }}</td>
+              <td><button class="btn btn-soft" type="button" (click)="seleccionado = tx">Detalle</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (seleccionado) {
+    <div class="modal-backdrop" (click)="seleccionado = null">
+      <article class="modal-card" (click)="$event.stopPropagation()">
+        <h3>Detalle de transacción</h3>
+        <dl class="detail-list">
+          <div><dt>Concepto</dt><dd>{{ seleccionado.concepto }}</dd></div>
+          <div><dt>Monto</dt><dd>{{ seleccionado.monto | currency: seleccionado.moneda || 'PEN' }}</dd></div>
+          <div><dt>Estado</dt><dd>{{ seleccionado.estado }}</dd></div>
+          <div><dt>Método</dt><dd>{{ metodoSeguro(seleccionado) }}</dd></div>
+          <div><dt>Referencia</dt><dd>{{ seleccionado.referenciaExterna || 'No registrada' }}</dd></div>
+        </dl>
+        <button type="button" class="btn btn-primary" (click)="seleccionado = null">Cerrar</button>
+      </article>
+    </div>
+  }
+</section>

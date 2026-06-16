@@ -1,0 +1,194 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <span class="section-tag">Publicar material</span>
+      <h2>Nueva publicación</h2>
+      <p>Los campos con * son obligatorios. Observaciones máximo 200 caracteres.</p>
+    </div>
+  </div>
+
+  <form class="form-shell" [formGroup]="form" (ngSubmit)="registrar()" novalidate>
+    @if (mensajeError) {
+      <div class="alert alert-error">
+        {{ mensajeError }}
+        @if (advertencias.length > 0) {
+          <ul>
+            @for (advertencia of advertencias; track advertencia) {
+              <li>{{ advertencia }}</li>
+            }
+          </ul>
+        }
+      </div>
+    }
+
+    @if (mensajeExito) {
+      <div class="alert alert-success">{{ mensajeExito }}</div>
+    }
+
+    <div class="field full">
+      <label for="titulo">Título *</label>
+      <input
+        id="titulo"
+        type="text"
+        formControlName="titulo"
+        placeholder="Ej. Botellas PET y cartón limpio"
+        [class.invalid]="campoInvalido('titulo')"
+      />
+      @if (campoInvalido('titulo')) {
+        <small class="field-error">{{ mensajeCampo('titulo') }}</small>
+      }
+    </div>
+
+    <div class="field-grid">
+      <div class="field">
+        <label for="direccion">Dirección de referencia *</label>
+        <input
+          id="direccion"
+          type="text"
+          formControlName="direccion"
+          placeholder="Av. Arequipa 1234"
+          [class.invalid]="campoInvalido('direccion')"
+        />
+        @if (campoInvalido('direccion')) {
+          <small class="field-error">{{ mensajeCampo('direccion') }}</small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="fechaDisponibilidad">Fecha de disponibilidad *</label>
+        <input
+          id="fechaDisponibilidad"
+          type="date"
+          formControlName="fechaDisponibilidad"
+          [class.invalid]="campoInvalido('fechaDisponibilidad')"
+        />
+        @if (campoInvalido('fechaDisponibilidad')) {
+          <small class="field-error">{{ mensajeCampo('fechaDisponibilidad') }}</small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="latitud">Latitud *</label>
+        <input
+          id="latitud"
+          type="number"
+          step="0.000001"
+          formControlName="latitud"
+          placeholder="-12.0464"
+          [class.invalid]="campoInvalido('latitud')"
+        />
+        @if (campoInvalido('latitud')) {
+          <small class="field-error">{{ mensajeCampo('latitud') }}</small>
+        }
+      </div>
+
+      <div class="field">
+        <label for="longitud">Longitud *</label>
+        <input
+          id="longitud"
+          type="number"
+          step="0.000001"
+          formControlName="longitud"
+          placeholder="-77.0428"
+          [class.invalid]="campoInvalido('longitud')"
+        />
+        @if (campoInvalido('longitud')) {
+          <small class="field-error">{{ mensajeCampo('longitud') }}</small>
+        }
+      </div>
+    </div>
+
+    <div class="field full">
+      <label>Materiales * <span>(marca al menos uno y ajusta los kg)</span></label>
+
+      @if (cargandoMateriales) {
+        <p class="muted">Cargando materiales...</p>
+      } @else if (materialesArray.length === 0) {
+        <div class="empty-state compact">
+          <strong>No hay materiales disponibles.</strong>
+          <span>El backend no devolvió materiales para seleccionar.</span>
+        </div>
+      } @else {
+        <div class="materials-grid" formArrayName="materiales">
+          @for (material of materialesArray.controls; track material.get('idMaterial')?.value; let i = $index) {
+            <div class="material-option" [class.selected]="materialSeleccionado(i)" [formGroupName]="i">
+              <label>
+                <input type="checkbox" formControlName="seleccionado" />
+                <span>{{ material.get('nombre')?.value }}</span>
+              </label>
+
+              <div class="kg-field">
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.01"
+                  formControlName="cantidad"
+                  placeholder="0"
+                  [class.invalid]="cantidadInvalida(i)"
+                />
+                <span>kg</span>
+              </div>
+
+              @if (cantidadInvalida(i)) {
+                <small class="field-error material-error">{{ mensajeCantidad(i) }}</small>
+              }
+            </div>
+          }
+        </div>
+      }
+
+      @if (materialesInvalidos()) {
+        <small class="field-error">Selecciona al menos un material.</small>
+      }
+    </div>
+
+    <div class="field full">
+      <div class="label-row">
+        <label for="observaciones">Observaciones</label>
+        <small>{{ observacionesLength }}/200</small>
+      </div>
+      <textarea
+        id="observaciones"
+        rows="4"
+        formControlName="observaciones"
+        placeholder="Ej. material limpio y seco, tocar el timbre azul"
+        [class.invalid]="campoInvalido('observaciones')"
+      ></textarea>
+      @if (campoInvalido('observaciones')) {
+        <small class="field-error">{{ mensajeCampo('observaciones') }}</small>
+      }
+    </div>
+
+    <div class="field full">
+      <label for="imagen">Imagen del material</label>
+      <input
+        #imagenInput
+        id="imagen"
+        type="file"
+        accept="image/jpeg,image/png,image/webp,image/gif"
+        (change)="seleccionarImagen($event)"
+      />
+      <small class="muted">Se validará formato JPG, PNG, WEBP o GIF y tamaño menor a 5 MB.</small>
+
+      @if (imagen) {
+        <div class="file-pill">
+          <span>{{ imagen.name }} ({{ formatoTamano(imagen.size) }})</span>
+          <button type="button" (click)="quitarImagen(imagenInput)">Quitar</button>
+        </div>
+      }
+
+      @if (imagenError) {
+        <small class="field-error">{{ imagenError }}</small>
+      }
+    </div>
+
+    <div class="form-actions">
+      <button type="button" class="btn btn-soft" (click)="cancelar()" [disabled]="guardando">
+        Cancelar
+      </button>
+      <button type="submit" class="btn btn-primary" [disabled]="guardando || cargandoMateriales">
+        {{ guardando ? 'Guardando...' : 'Crear publicación' }}
+      </button>
+    </div>
+  </form>
+</section>

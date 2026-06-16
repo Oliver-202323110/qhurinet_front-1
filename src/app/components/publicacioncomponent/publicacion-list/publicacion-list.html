@@ -1,0 +1,85 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <span class="section-tag">Materiales para recojo</span>
+      <h2>Mis publicaciones de material</h2>
+      <p>Registra, edita o elimina los materiales que tienes disponibles para recojo.</p>
+    </div>
+    <a routerLink="/publicaciones/nuevo" class="btn btn-primary">+ Nueva publicación</a>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+
+  @if (mensajeExito) {
+    <div class="alert alert-success">{{ mensajeExito }}</div>
+  }
+
+  @if (cargando) {
+    <p class="loading-text">Cargando publicaciones...</p>
+  } @else if (publicaciones.length === 0 && !mensajeError) {
+    <div class="empty-state">
+      <strong>No tienes publicaciones registradas.</strong>
+      <span>Publica tu primer material disponible para que aparezca en este listado.</span>
+      <a routerLink="/publicaciones/nuevo" class="btn btn-primary">Crear publicación</a>
+    </div>
+  } @else {
+    <div class="publication-grid">
+      @for (card of publicaciones; track trackByPublicacion($index, card)) {
+        <article class="publication-card">
+          <div class="publication-image">
+            <span class="status-chip floating" [class.inactive]="!card.publicacion.activo">
+              {{ card.publicacion.activo ? 'disponible' : 'inactiva' }}
+            </span>
+            <span>imagen no disponible</span>
+          </div>
+
+          <div class="publication-body">
+            <h3>{{ card.publicacion.titulo }}</h3>
+            <p class="meta-line">
+              <span>{{ card.publicacion.direccion || 'Dirección no registrada' }}</span>
+              @if (formatearFecha(card.publicacion.createdAt)) {
+                <span>· creada {{ formatearFecha(card.publicacion.createdAt) }}</span>
+              }
+            </p>
+
+            @if (card.materiales.length > 0) {
+              <div class="chip-row">
+                @for (material of card.materiales; track trackByMaterial($index, material)) {
+                  <span class="material-chip">
+                    {{ material.nombreMaterial }} · {{ material.cantidad }} {{ material.unidad || 'kg' }}
+                  </span>
+                }
+              </div>
+            } @else {
+              <p class="detail-warning">{{ card.errorDetalle || 'Materiales no disponibles.' }}</p>
+            }
+
+            <div class="card-actions">
+              <a class="btn btn-soft" [routerLink]="['/publicaciones/detalle', card.publicacion.id]">
+                Detalle
+              </a>
+              <button type="button" class="btn btn-soft" (click)="editar(card.publicacion.id)">
+                Editar
+              </button>
+
+              @if (esAdmin()) {
+                <button
+                  type="button"
+                  class="btn btn-danger"
+                  [disabled]="eliminandoId === card.publicacion.id"
+                  (click)="eliminar(card)"
+                >
+                  {{ eliminandoId === card.publicacion.id ? 'Eliminando...' : 'Eliminar' }}
+                </button>
+              } @else {
+                <button type="button" class="btn btn-disabled" disabled>Solo administrador</button>
+              }
+            </div>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

@@ -1,0 +1,53 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <span class="section-tag">Roles</span>
+      <h2>Roles y permisos</h2>
+      <p>Gestión visible solo para administradores.</p>
+    </div>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+  @if (mensajeExito) {
+    <div class="alert alert-success">{{ mensajeExito }}</div>
+  }
+
+  @if (cargando) {
+    <p class="loading-text">Cargando roles...</p>
+  } @else {
+    <section class="panel">
+      <h3>Roles disponibles</h3>
+      <div class="chip-row">
+        @for (rol of roles; track rol.id) {
+          <span class="material-chip">{{ rol.nombre }}</span>
+        }
+      </div>
+    </section>
+
+    <section class="table-card">
+      <table>
+        <thead>
+          <tr><th>Usuario</th><th>Correo</th><th>Rol actual</th><th>Cambiar rol</th></tr>
+        </thead>
+        <tbody>
+          @for (usuario of usuarios; track usuario.id) {
+            <tr>
+              <td>{{ usuario.nombre }}</td>
+              <td>{{ usuario.correo }}</td>
+              <td>{{ usuario.roles?.join(', ') }}</td>
+              <td>
+                <select [(ngModel)]="cambios[usuario.id]" (change)="cambiarRol(usuario)">
+                  @for (rol of roles; track rol.id) {
+                    <option [value]="rol.nombre">{{ rol.nombre }}</option>
+                  }
+                </select>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+</section>

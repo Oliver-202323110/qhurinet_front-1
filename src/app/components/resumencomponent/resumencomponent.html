@@ -1,0 +1,94 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <h2>Hola, {{ nombreUsuario }}</h2>
+      <p>Publica materiales, coordina recojos y revisa tu avance.</p>
+    </div>
+    <a routerLink="/publicaciones/nuevo" class="btn btn-primary">+ Publicar material</a>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+
+  <div class="metric-grid">
+    <article class="metric-card">
+      <span>Publicaciones</span>
+      <strong>{{ publicacionesActivas }}</strong>
+      <small>activas</small>
+    </article>
+    <article class="metric-card">
+      <span>Puntos</span>
+      <strong>{{ puntosUsuario }}</strong>
+      <small>disponibles</small>
+    </article>
+    <article class="metric-card">
+      <span>Racha</span>
+      <strong>0</strong>
+      <small>días seguidos</small>
+    </article>
+    <article class="metric-card">
+      <span>Recojos</span>
+      <strong>0</strong>
+      <small>coordinados</small>
+    </article>
+  </div>
+
+  <div class="dashboard-grid">
+    <section class="panel">
+      <div class="panel-heading">
+        <h3>Mis publicaciones</h3>
+        <a routerLink="/publicaciones/lista" class="link-button">Ver todas</a>
+      </div>
+
+      @if (cargando) {
+        <p class="muted">Cargando publicaciones...</p>
+      } @else if (recientes.length === 0) {
+        <div class="empty-state compact">
+          <strong>Aún no tienes publicaciones.</strong>
+          <span>Cuando publiques materiales, aparecerán aquí.</span>
+        </div>
+      } @else {
+        <div class="summary-list">
+          @for (publicacion of recientes; track publicacion.id) {
+            <article class="summary-item">
+              <span class="summary-icon">R</span>
+              <div>
+                <strong>{{ publicacion.titulo }}</strong>
+                <small>
+                  {{ publicacion.direccion || 'Dirección no registrada' }}
+                  @if (formatearFecha(publicacion.createdAt)) {
+                    · {{ formatearFecha(publicacion.createdAt) }}
+                  }
+                </small>
+              </div>
+              <span class="status-chip" [class.inactive]="!publicacion.activo">
+                {{ publicacion.activo ? 'disponible' : 'inactiva' }}
+              </span>
+            </article>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="panel">
+      <h3>Accesos rápidos</h3>
+      <div class="quick-list">
+        <a routerLink="/publicaciones/nuevo" class="quick-link">
+          <span class="quick-icon">+</span>
+          <span>
+            <strong>Publicar material</strong>
+            <small>Nueva publicación</small>
+          </span>
+        </a>
+        <a routerLink="/publicaciones/lista" class="quick-link">
+          <span class="quick-icon">P</span>
+          <span>
+            <strong>Publicaciones</strong>
+            <small>Listado y edición</small>
+          </span>
+        </a>
+      </div>
+    </section>
+  </div>
+</section>

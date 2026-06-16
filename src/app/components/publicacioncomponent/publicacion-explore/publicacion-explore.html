@@ -1,0 +1,48 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <span class="section-tag">Puntos de reciclaje</span>
+      <h2>Explorar publicaciones activas</h2>
+      <p>Busca por texto, dirección, material o título.</p>
+    </div>
+  </div>
+
+  <form class="search-bar" (ngSubmit)="buscar()">
+    <input type="search" [(ngModel)]="texto" name="texto" placeholder="Buscar publicaciones" />
+    <button class="btn btn-primary" type="submit">Buscar</button>
+    <button class="btn btn-soft" type="button" (click)="texto = ''; cargarActivas()">Limpiar</button>
+  </form>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+
+  @if (cargando) {
+    <p class="loading-text">Cargando publicaciones...</p>
+  } @else if (publicaciones.length === 0) {
+    <div class="empty-state">
+      <strong>No se encontraron publicaciones.</strong>
+      <span>Prueba con otro texto o vuelve al listado activo.</span>
+    </div>
+  } @else {
+    <div class="publication-grid">
+      @for (publicacion of publicaciones; track publicacion.id) {
+        <article class="publication-card">
+          <div class="publication-image">
+            <span class="status-chip floating">disponible</span>
+            <span>imagen no disponible</span>
+          </div>
+          <div class="publication-body">
+            <h3>{{ publicacion.titulo }}</h3>
+            <p class="meta-line">{{ publicacion.direccion || 'Dirección no registrada' }}</p>
+            <div class="chip-row">
+              <span class="material-chip">{{ publicacion.material }}</span>
+              <span class="material-chip">{{ publicacion.categoria }}</span>
+            </div>
+            <a class="btn btn-soft" [routerLink]="['/publicaciones/detalle', publicacion.id]">Ver detalle</a>
+          </div>
+        </article>
+      }
+    </div>
+  }
+</section>

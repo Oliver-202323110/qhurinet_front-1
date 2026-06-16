@@ -1,0 +1,67 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <span class="section-tag">Administración</span>
+      <h2>Documentos pendientes</h2>
+      <p>Revisa documentación de usuarios y registra la decisión.</p>
+    </div>
+    <select class="toolbar-select" [(ngModel)]="filtroEstado" (ngModelChange)="cargar()">
+      <option value="">Todos</option>
+      <option value="pendiente">Pendiente</option>
+      <option value="aprobado">Aprobado</option>
+      <option value="rechazado">Rechazado</option>
+    </select>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+  @if (mensajeExito) {
+    <div class="alert alert-success">{{ mensajeExito }}</div>
+  }
+
+  @if (cargando) {
+    <p class="loading-text">Cargando documentos...</p>
+  } @else if (documentos.length === 0) {
+    <div class="empty-state">
+      <strong>No hay documentos con ese estado.</strong>
+    </div>
+  } @else {
+    <div class="table-card">
+      <table>
+        <thead>
+          <tr><th>Usuario</th><th>Tipo</th><th>Estado</th><th>Fecha</th><th>Acción</th></tr>
+        </thead>
+        <tbody>
+          @for (documento of documentos; track documento.id) {
+            <tr>
+              <td>{{ documento.usuarioNombre }}</td>
+              <td>{{ documento.tipo }}</td>
+              <td><span class="status-chip">{{ documento.estado }}</span></td>
+              <td>{{ documento.createdAt | date: 'dd/MM/yyyy' }}</td>
+              <td><button class="btn btn-soft" type="button" (click)="seleccionado = documento">Revisar</button></td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+
+  @if (seleccionado) {
+    <div class="modal-backdrop" (click)="seleccionado = null">
+      <article class="modal-card" (click)="$event.stopPropagation()">
+        <h3>Revisar documento</h3>
+        <p>{{ seleccionado.usuarioNombre }} · {{ seleccionado.tipo }}</p>
+        <a [href]="seleccionado.urlArchivo" target="_blank" rel="noopener" class="btn btn-soft">Abrir archivo</a>
+        <div class="field">
+          <label for="motivo">Motivo de rechazo</label>
+          <textarea id="motivo" rows="3" [(ngModel)]="motivoRechazo"></textarea>
+        </div>
+        <div class="form-actions">
+          <button class="btn btn-soft" type="button" [disabled]="procesando" (click)="revisar('aprobado')">Aprobar</button>
+          <button class="btn btn-danger" type="button" [disabled]="procesando" (click)="revisar('rechazado')">Rechazar</button>
+        </div>
+      </article>
+    </div>
+  }
+</section>

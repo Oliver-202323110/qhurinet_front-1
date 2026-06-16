@@ -1,0 +1,77 @@
+<main class="auth-page">
+  <section class="auth-brand">
+    <div class="brand">
+      <span class="brand-mark">Q</span>
+      <span class="brand-name">QhuriNet</span>
+    </div>
+    <div>
+      <h1>Iniciar sesion</h1>
+      <p>Accede para publicar materiales, revisar tu perfil y gestionar tus documentos.</p>
+    </div>
+    <small>Frontend conectado a la API local de QhuriNet.</small>
+  </section>
+
+  <section class="auth-panel">
+    <div class="auth-card">
+      <h2>Bienvenido</h2>
+      <p class="muted">Usa tu correo o usuario y contrasena.</p>
+
+      @if (mensajeInfo) {
+        <div class="alert alert-warning">{{ mensajeInfo }}</div>
+      }
+
+      @if (mensajeError) {
+        <div class="alert alert-error">{{ mensajeError }}</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="ingresar()" novalidate>
+        <div class="field">
+          <label for="username">Correo o usuario</label>
+          <input
+            id="username"
+            type="text"
+            formControlName="username"
+            autocomplete="username"
+            [class.invalid]="campoInvalido('username')"
+          />
+          @if (campoInvalido('username')) {
+            <small class="field-error">Este campo es obligatorio.</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="password">Contrasena</label>
+          <div class="password-row">
+            <input
+              id="password"
+              [type]="mostrarPassword ? 'text' : 'password'"
+              formControlName="password"
+              autocomplete="current-password"
+              [class.invalid]="campoInvalido('password')"
+            />
+            <button type="button" (click)="mostrarPassword = !mostrarPassword">
+              {{ mostrarPassword ? 'Ocultar' : 'Ver' }}
+            </button>
+          </div>
+          @if (campoInvalido('password')) {
+            <small class="field-error">La contrasena es obligatoria.</small>
+          }
+        </div>
+
+        <label class="check-row">
+          <input type="checkbox" formControlName="recordar" />
+          <span>Recordar sesion en este equipo</span>
+        </label>
+
+        <button type="submit" class="btn btn-primary auth-submit" [disabled]="cargando">
+          {{ cargando ? 'Ingresando...' : 'Ingresar' }}
+        </button>
+      </form>
+
+      <p class="auth-switch">
+        No tienes cuenta?
+        <a routerLink="/register">Crear cuenta</a>
+      </p>
+    </div>
+  </section>
+</main>

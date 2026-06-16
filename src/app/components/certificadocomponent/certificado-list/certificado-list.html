@@ -1,0 +1,72 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <span class="section-tag">Certificados</span>
+      <h2>Certificados digitales</h2>
+      <p>Consulta certificados disponibles, obtenidos y filtrados por dificultad.</p>
+    </div>
+    <select class="toolbar-select" [(ngModel)]="dificultad" (ngModelChange)="cargar()">
+      <option value="">Todas las dificultades</option>
+      <option value="facil">Fácil</option>
+      <option value="medio">Medio</option>
+      <option value="dificil">Difícil</option>
+    </select>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+  @if (mensajeExito) {
+    <div class="alert alert-success">{{ mensajeExito }}</div>
+  }
+
+  @if (cargando) {
+    <p class="loading-text">Cargando certificados...</p>
+  } @else if (certificados.length === 0) {
+    <div class="empty-state">
+      <strong>No hay certificados para mostrar.</strong>
+      <span>Prueba con otro filtro de dificultad.</span>
+    </div>
+  } @else {
+    <div class="cards-grid">
+      @for (certificado of certificados; track certificado.id) {
+        <article class="panel feature-card">
+          <span class="status-chip" [class.inactive]="estado(certificado) === 'bloqueado'">
+            {{ estado(certificado) }}
+          </span>
+          <h3>{{ certificado.nombre }}</h3>
+          <p>{{ certificado.descripcion }}</p>
+          <dl class="detail-list">
+            <div><dt>Dificultad</dt><dd>{{ certificado.nivelDificultad || 'Sin nivel' }}</dd></div>
+            <div><dt>Puntos requeridos</dt><dd>{{ certificado.puntosRequeridos || 0 }}</dd></div>
+            <div><dt>Usuario</dt><dd>{{ certificado.usuarioNombre || 'Disponible' }}</dd></div>
+          </dl>
+          <div class="card-actions">
+            <button type="button" class="btn btn-soft" (click)="seleccionado = certificado">Detalle</button>
+            <button type="button" class="btn btn-primary" (click)="descargar(certificado)" [disabled]="estado(certificado) === 'bloqueado'">
+              Descargar
+            </button>
+          </div>
+          @if (estado(certificado) === 'disponible') {
+            <small class="muted">El backend no expone un endpoint de canje para este certificado.</small>
+          }
+        </article>
+      }
+    </div>
+  }
+
+  @if (seleccionado) {
+    <div class="modal-backdrop" (click)="seleccionado = null">
+      <article class="modal-card" (click)="$event.stopPropagation()">
+        <h3>{{ seleccionado.nombre }}</h3>
+        <p>{{ seleccionado.descripcion }}</p>
+        <dl class="detail-list">
+          <div><dt>Dificultad</dt><dd>{{ seleccionado.nivelDificultad }}</dd></div>
+          <div><dt>Puntos</dt><dd>{{ seleccionado.puntosRequeridos }}</dd></div>
+          <div><dt>Estado</dt><dd>{{ estado(seleccionado) }}</dd></div>
+        </dl>
+        <button type="button" class="btn btn-primary" (click)="seleccionado = null">Cerrar</button>
+      </article>
+    </div>
+  }
+</section>

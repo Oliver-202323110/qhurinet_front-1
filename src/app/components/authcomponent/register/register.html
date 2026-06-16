@@ -1,0 +1,100 @@
+<main class="auth-page">
+  <section class="auth-brand">
+    <div class="brand">
+      <span class="brand-mark">Q</span>
+      <span class="brand-name">QhuriNet</span>
+    </div>
+    <div>
+      <h1>Crear cuenta</h1>
+      <p>Registrate para publicar materiales reciclables y gestionar tu perfil.</p>
+    </div>
+    <small>Despues de registrarte podras iniciar sesion.</small>
+  </section>
+
+  <section class="auth-panel">
+    <div class="auth-card">
+      <h2>Registro</h2>
+      <p class="muted">Completa tus datos para acceder a la plataforma.</p>
+
+      @if (mensajeError) {
+        <div class="alert alert-error">{{ mensajeError }}</div>
+      }
+
+      @if (mensajeExito) {
+        <div class="alert alert-success">{{ mensajeExito }}</div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="registrar()" novalidate>
+        <div class="field">
+          <label for="nombre">Nombre</label>
+          <input id="nombre" type="text" formControlName="nombre" [class.invalid]="campoInvalido('nombre')" />
+          @if (campoInvalido('nombre')) {
+            <small class="field-error">{{ mensajeCampo('nombre') }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="correo">Correo electronico</label>
+          <input id="correo" type="email" formControlName="correo" [class.invalid]="campoInvalido('correo')" />
+          @if (campoInvalido('correo')) {
+            <small class="field-error">{{ mensajeCampo('correo') }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="tipoCuenta">Tipo de cuenta</label>
+          <select id="tipoCuenta" formControlName="tipoCuenta" [class.invalid]="campoInvalido('tipoCuenta')">
+            <option value="">Selecciona una opcion</option>
+            @for (rol of rolesPermitidos; track rol.value) {
+              <option [value]="rol.value">{{ rol.label }}</option>
+            }
+          </select>
+          @if (campoInvalido('tipoCuenta')) {
+            <small class="field-error">{{ mensajeCampo('tipoCuenta') }}</small>
+          }
+          <small class="muted">El backend publico registra con rol basico. Un administrador puede ajustar permisos.</small>
+        </div>
+
+        <div class="field">
+          <label for="password">Contrasena</label>
+          <div class="password-row">
+            <input
+              id="password"
+              [type]="mostrarPassword ? 'text' : 'password'"
+              formControlName="password"
+              [class.invalid]="campoInvalido('password')"
+            />
+            <button type="button" (click)="mostrarPassword = !mostrarPassword">
+              {{ mostrarPassword ? 'Ocultar' : 'Ver' }}
+            </button>
+          </div>
+          @if (campoInvalido('password')) {
+            <small class="field-error">{{ mensajeCampo('password') }}</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="confirmPassword">Confirmar contrasena</label>
+          <input
+            id="confirmPassword"
+            type="password"
+            formControlName="confirmPassword"
+            [class.invalid]="campoInvalido('confirmPassword') || form.errors?.['passwordsDistintas']"
+          />
+          @if (campoInvalido('confirmPassword') || form.errors?.['passwordsDistintas']) {
+            <small class="field-error">{{ mensajeCampo('confirmPassword') }}</small>
+          }
+        </div>
+
+        <button type="submit" class="btn btn-primary auth-submit" [disabled]="cargando">
+          {{ cargando ? 'Creando cuenta...' : 'Crear cuenta' }}
+        </button>
+      </form>
+
+      <p class="auth-switch">
+        Ya tienes cuenta?
+        <a routerLink="/login">Iniciar sesion</a>
+      </p>
+    </div>
+  </section>
+</main>

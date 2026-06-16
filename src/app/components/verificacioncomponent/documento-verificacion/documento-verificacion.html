@@ -1,0 +1,81 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <span class="section-tag">Verificación</span>
+      <h2>Documentación de verificación</h2>
+      <p>Adjunta una imagen clara de tu documento para solicitar la insignia de verificado.</p>
+    </div>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+  @if (mensajeExito) {
+    <div class="alert alert-success">{{ mensajeExito }}</div>
+  }
+
+  <div class="two-column">
+    <section class="panel">
+      <h3>Requisitos</h3>
+      <ul class="clean-list">
+        <li>Archivo obligatorio.</li>
+        <li>Formatos permitidos por backend: JPG, PNG, WEBP o GIF.</li>
+        <li>Tamaño máximo: 5 MB.</li>
+        <li>Si fue aprobado, no se permite reenviar sin autorización.</li>
+      </ul>
+    </section>
+
+    <form class="form-shell" [formGroup]="form" (ngSubmit)="enviar()" novalidate>
+      <div class="field">
+        <label for="tipo">Tipo de documento</label>
+        <select id="tipo" formControlName="tipo">
+          <option value="dni">DNI</option>
+          <option value="ruc">RUC</option>
+          <option value="licencia">Licencia</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="archivo">Archivo</label>
+        <input id="archivo" type="file" accept="image/jpeg,image/png,image/webp,image/gif" (change)="seleccionarArchivo($event)" />
+        @if (archivo) {
+          <small class="muted">{{ archivo.name }}</small>
+        }
+        @if (archivoError) {
+          <small class="field-error">{{ archivoError }}</small>
+        }
+      </div>
+
+      @if (previewUrl) {
+        <img [src]="previewUrl" alt="Vista previa del documento" class="preview-image" />
+      }
+
+      <button type="submit" class="btn btn-primary" [disabled]="enviando || tieneAprobado()">
+        {{ enviando ? 'Enviando...' : 'Enviar documentación' }}
+      </button>
+    </form>
+  </div>
+
+  <section class="panel">
+    <h3>Mis envíos</h3>
+    @if (cargando) {
+      <p class="loading-text">Cargando documentos...</p>
+    } @else if (documentos.length === 0) {
+      <p class="muted">Aún no enviaste documentación.</p>
+    } @else {
+      <div class="cards-grid">
+        @for (documento of documentos; track documento.id) {
+          <article class="mini-card">
+            <span class="status-chip">{{ documento.estado }}</span>
+            <strong>{{ documento.tipo }}</strong>
+            <span>{{ documento.createdAt | date: 'dd/MM/yyyy HH:mm' }}</span>
+            @if (documento.motivoRechazo) {
+              <small class="field-error">{{ documento.motivoRechazo }}</small>
+            }
+            <a [href]="documento.urlArchivo" target="_blank" rel="noopener" class="link-button">Ver archivo</a>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</section>

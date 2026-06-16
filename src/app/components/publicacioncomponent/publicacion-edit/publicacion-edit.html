@@ -1,0 +1,90 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <span class="section-tag">Editar publicación</span>
+      <h2>Editar publicación</h2>
+      <p>Actualiza datos principales, materiales y cantidades.</p>
+    </div>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+  @if (mensajeExito) {
+    <div class="alert alert-success">{{ mensajeExito }}</div>
+  }
+
+  @if (cargando) {
+    <p class="loading-text">Cargando publicación...</p>
+  } @else if (publicacion) {
+    <form class="form-shell" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+      <div class="field">
+        <label for="titulo">Título</label>
+        <input id="titulo" type="text" formControlName="titulo" [class.invalid]="campoInvalido('titulo')" />
+      </div>
+      <div class="field-grid">
+        <div class="field">
+          <label for="direccion">Dirección</label>
+          <input id="direccion" type="text" formControlName="direccion" [class.invalid]="campoInvalido('direccion')" />
+        </div>
+        <div class="field">
+          <label for="fecha">Fecha de disponibilidad</label>
+          <input id="fecha" type="date" formControlName="fechaDisponibilidad" [class.invalid]="campoInvalido('fechaDisponibilidad')" />
+          <small class="muted">El DTO actual no devuelve la fecha previa; ingresa una nueva si quieres cambiarla.</small>
+        </div>
+        <div class="field">
+          <label for="latitud">Latitud</label>
+          <input id="latitud" type="number" step="0.000001" formControlName="latitud" />
+        </div>
+        <div class="field">
+          <label for="longitud">Longitud</label>
+          <input id="longitud" type="number" step="0.000001" formControlName="longitud" />
+        </div>
+      </div>
+
+      <label class="check-row">
+        <input type="checkbox" formControlName="activo" />
+        <span>Publicación activa</span>
+      </label>
+
+      <div class="field">
+        <div class="label-row">
+          <label>Observaciones</label>
+          <small>{{ observacionesLength }}/200</small>
+        </div>
+        <textarea rows="3" formControlName="observaciones"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Materiales</label>
+        <div class="materials-grid" formArrayName="materiales">
+          @for (material of materialesArray.controls; track material.get('idMaterial')?.value; let i = $index) {
+            <div class="material-option" [class.selected]="materialSeleccionado(i)" [formGroupName]="i">
+              <label>
+                <input type="checkbox" formControlName="seleccionado" />
+                <span>{{ material.get('nombre')?.value }}</span>
+              </label>
+              <div class="kg-field">
+                <input type="number" step="0.01" formControlName="cantidad" [class.invalid]="cantidadInvalida(i)" />
+                <span>kg</span>
+              </div>
+              @if (cantidadInvalida(i)) {
+                <small class="field-error material-error">Cantidad mayor a cero y máximo dos decimales.</small>
+              }
+            </div>
+          }
+        </div>
+        @if (materialesArray.errors?.['materialRequerido'] && submitted) {
+          <small class="field-error">Selecciona al menos un material.</small>
+        }
+      </div>
+
+      <div class="form-actions">
+        <button class="btn btn-soft" type="button" (click)="cancelar()" [disabled]="guardando">Cancelar</button>
+        <button class="btn btn-primary" type="submit" [disabled]="guardando">
+          {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+        </button>
+      </div>
+    </form>
+  }
+</section>

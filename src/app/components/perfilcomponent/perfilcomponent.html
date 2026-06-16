@@ -1,0 +1,94 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <span class="section-tag">Perfil</span>
+      <h2>Mi perfil</h2>
+      <p>Completa tus datos para que otros usuarios reconozcan tu actividad.</p>
+    </div>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+  @if (mensajeExito) {
+    <div class="alert alert-success">{{ mensajeExito }}</div>
+  }
+
+  @if (cargando) {
+    <p class="loading-text">Cargando perfil...</p>
+  } @else if (perfil) {
+    <div class="two-column">
+      <aside class="panel profile-card">
+        @if (perfil.fotoUrl) {
+          <img [src]="perfil.fotoUrl" alt="Foto de perfil" class="profile-photo" />
+        } @else {
+          <div class="profile-avatar">{{ inicial() }}</div>
+        }
+        <h3>{{ perfil.nombre }}</h3>
+        <p>{{ usuario?.correo }}</p>
+        <div class="status-row">
+          <span class="status-chip">{{ usuario?.roles?.join(', ') || 'USER' }}</span>
+          <span class="status-chip" [class.inactive]="!perfil.verificado">
+            {{ perfil.verificado ? 'verificado' : 'pendiente' }}
+          </span>
+        </div>
+        <dl class="mini-stats">
+          <div>
+            <dt>Puntos</dt>
+            <dd>{{ perfil.puntosTotales }}</dd>
+          </div>
+          <div>
+            <dt>Nivel</dt>
+            <dd>{{ perfil.nivelParticipacion || 'BRONCE' }}</dd>
+          </div>
+        </dl>
+      </aside>
+
+      <form class="form-shell" [formGroup]="form" (ngSubmit)="guardar()" novalidate>
+        <div class="field">
+          <label for="nombre">Nombre</label>
+          <input id="nombre" type="text" formControlName="nombre" [class.invalid]="campoInvalido('nombre')" />
+          @if (campoInvalido('nombre')) {
+            <small class="field-error">El nombre es obligatorio.</small>
+          }
+        </div>
+
+        <div class="field">
+          <label for="telefono">Teléfono</label>
+          <input id="telefono" type="tel" formControlName="telefono" />
+        </div>
+
+        <div class="field">
+          <label for="tipoCuenta">Tipo de cuenta</label>
+          <select id="tipoCuenta" formControlName="tipoCuenta">
+            <option value="GENERADOR">Emisor eco-consciente</option>
+            <option value="BODEGA">Bodega o pequeño comercio</option>
+            <option value="RECOLECTOR">Recolector</option>
+          </select>
+        </div>
+
+        <div class="field">
+          <label for="descripcion">Descripción</label>
+          <textarea id="descripcion" rows="4" formControlName="descripcion"></textarea>
+        </div>
+
+        <div class="field">
+          <label for="foto">Foto o avatar</label>
+          <input id="foto" type="file" accept="image/jpeg,image/png,image/webp,image/gif" (change)="seleccionarFoto($event)" />
+          @if (foto) {
+            <small class="muted">{{ foto.name }}</small>
+          }
+          @if (fotoError) {
+            <small class="field-error">{{ fotoError }}</small>
+          }
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" [disabled]="guardando">
+            {{ guardando ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+</section>

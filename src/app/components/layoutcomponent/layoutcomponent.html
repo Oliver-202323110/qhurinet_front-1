@@ -1,0 +1,63 @@
+<div class="app-shell" [class.sidebar-open]="menuOpen">
+  <aside class="sidebar" aria-label="Navegacion principal">
+    <div class="brand">
+      <span class="brand-mark">Q</span>
+      <span class="brand-name">QhuriNet</span>
+    </div>
+
+    <div class="role-label">{{ rolUsuario }}</div>
+
+    <nav class="nav-menu">
+      @for (item of visibleNavItems; track trackByPath($index, item)) {
+        <a
+          [routerLink]="item.path"
+          routerLinkActive="active"
+          [routerLinkActiveOptions]="{ exact: item.path === '/resumen' }"
+          class="nav-link"
+        >
+          <span class="nav-dot"></span>
+          <span>{{ item.label }}</span>
+        </a>
+      }
+    </nav>
+
+    <div class="sidebar-footer">
+      <button type="button" class="sidebar-action danger" (click)="cerrarSesion()">
+        <span class="nav-dot red"></span>
+        Cerrar sesion
+      </button>
+    </div>
+  </aside>
+
+  <div class="shell-backdrop" (click)="toggleMenu()" aria-hidden="true"></div>
+
+  <section class="workspace">
+    <header class="topbar">
+      <button type="button" class="menu-toggle" (click)="toggleMenu()" aria-label="Abrir menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+
+      <h1>{{ pageTitle }}</h1>
+
+      <div class="topbar-actions">
+        <button type="button" class="notification-button" aria-label="Notificaciones">
+          <span>!</span>
+        </button>
+
+        <div class="profile-pill">
+          <span class="profile-initial">{{ inicialUsuario }}</span>
+          <span class="profile-copy">
+            <strong>{{ nombreUsuario }}</strong>
+            <small>{{ puntosUsuario }} pts</small>
+          </span>
+        </div>
+      </div>
+    </header>
+
+    <main class="content-area">
+      <router-outlet />
+    </main>
+  </section>
+</div>
