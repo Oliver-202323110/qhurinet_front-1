@@ -27,7 +27,7 @@ export class RegisterComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly rolesPermitidos = [
-    { value: 'GENERADOR', label: 'Emisor eco-consciente' },
+    { value: 'EMISOR', label: 'Emisor eco-consciente' },
     { value: 'BODEGA', label: 'Bodega o pequeño comercio' },
     { value: 'RECOLECTOR', label: 'Recolector' },
   ];
@@ -68,6 +68,7 @@ export class RegisterComponent {
         correo,
         nombre: String(this.form.value.nombre ?? '').trim(),
         password: String(this.form.value.password ?? ''),
+        tipoCuenta: String(this.form.value.tipoCuenta ?? ''),
       })
       .subscribe({
         next: () => {

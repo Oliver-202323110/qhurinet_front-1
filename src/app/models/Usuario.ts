@@ -26,6 +26,7 @@ export interface RegisterRequest {
   password: string;
   nombre: string;
   correo: string;
+  tipoCuenta?: string;
 }
 
 export interface LoginResponse {
