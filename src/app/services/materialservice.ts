@@ -23,6 +23,18 @@ export class MaterialService {
     return this.http.get<Material>(`${this.apiUrl}/${id}`);
   }
 
+  crear(material: Material): Observable<Material> {
+    return this.http.post<Material>(this.apiUrl, material);
+  }
+
+  actualizar(id: number, material: Material): Observable<Material> {
+    return this.http.put<Material>(`${this.apiUrl}/${id}`, material);
+  }
+
+  eliminar(id: number): Observable<unknown> {
+    return this.http.delete<unknown>(`${this.apiUrl}/${id}`);
+  }
+
   listarPorCategoria(categoria: string): Observable<Material[]> {
     return this.listar().pipe(
       map((materiales) =>

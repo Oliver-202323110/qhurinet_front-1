@@ -3,12 +3,52 @@
     <div>
       <span class="section-tag">Bloque 3</span>
       <h2>Materiales y publicaciones</h2>
-      <p>Consulta los materiales disponibles, sus puntos por kg y las publicaciones asociadas.</p>
+      <p>Administra los materiales reciclables del sistema y consulta las publicaciones asociadas.</p>
     </div>
+    <button class="btn btn-primary" (click)="abrirFormularioNuevo()">+ Nuevo material</button>
   </div>
 
   @if (mensajeError) {
     <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+
+  @if (mensajeExito) {
+    <div class="alert alert-success">{{ mensajeExito }}</div>
+  }
+
+  @if (mostrarFormulario) {
+    <div class="modal-backdrop" (click)="cancelarFormulario()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <h3>{{ editandoMaterial ? 'Editar material' : 'Nuevo material' }}</h3>
+
+        <div class="field">
+          <label for="mat-nombre">Nombre *</label>
+          <input id="mat-nombre" type="text" [(ngModel)]="nuevoMaterial.nombre" name="nombre" placeholder="Ej. Plástico PET" />
+        </div>
+
+        <div class="field">
+          <label for="mat-categoria">Categoría *</label>
+          <input id="mat-categoria" type="text" [(ngModel)]="nuevoMaterial.categoria" name="categoria" placeholder="Ej. Reciclable" />
+        </div>
+
+        <div class="field">
+          <label for="mat-puntos">Puntos por kg</label>
+          <input id="mat-puntos" type="number" min="0" step="1" [(ngModel)]="nuevoMaterial.puntosPorKg" name="puntosPorKg" />
+        </div>
+
+        <div class="field">
+          <label for="mat-descripcion">Descripción</label>
+          <textarea id="mat-descripcion" rows="3" [(ngModel)]="nuevoMaterial.descripcion" name="descripcion" placeholder="Descripción del material"></textarea>
+        </div>
+
+        <div class="modal-actions">
+          <button class="btn btn-soft" type="button" (click)="cancelarFormulario()" [disabled]="guardando">Cancelar</button>
+          <button class="btn btn-primary" type="button" (click)="guardarMaterial()" [disabled]="guardando">
+            {{ guardando ? 'Guardando...' : (editandoMaterial ? 'Guardar cambios' : 'Crear material') }}
+          </button>
+        </div>
+      </div>
+    </div>
   }
 
   <div class="two-column">
@@ -28,6 +68,7 @@
       } @else if (materialesFiltrados.length === 0) {
         <div class="empty-state compact">
           <strong>No hay materiales registrados.</strong>
+          <span>Usa el botón "+ Nuevo material" para crear el primero.</span>
         </div>
       } @else {
         <div class="table-card">
@@ -36,8 +77,9 @@
               <tr>
                 <th>Material</th>
                 <th>Categoría</th>
-                <th>Puntos por kg</th>
+                <th>Pts/kg</th>
                 <th>Descripción</th>
+                <th>Acciones</th>
               </tr>
             </thead>
             <tbody>
@@ -45,8 +87,20 @@
                 <tr>
                   <td><strong>{{ material.nombre }}</strong></td>
                   <td><span class="material-chip">{{ material.categoria }}</span></td>
-                  <td><strong>{{ material.puntosPorKg }}</strong> pts</td>
+                  <td><strong>{{ material.puntosPorKg }}</strong></td>
                   <td>{{ material.descripcion || '—' }}</td>
+                  <td>
+                    <div class="table-actions">
+                      <button class="btn btn-soft btn-sm" (click)="abrirFormularioEditar(material)">Editar</button>
+                      <button
+                        class="btn btn-danger btn-sm"
+                        [disabled]="eliminandoId === material.id"
+                        (click)="eliminarMaterial(material)"
+                      >
+                        {{ eliminandoId === material.id ? '...' : 'Eliminar' }}
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               }
             </tbody>

@@ -23,3 +23,14 @@
 .pub-material-total strong {
   color: var(--green-700);
 }
+
+.table-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-sm {
+  padding: 5px 10px;
+  font-size: 12px;
+  min-height: 30px;
+}
