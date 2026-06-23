@@ -27,30 +27,26 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
         return throwError(() => error);
       }
 
-      if (error.status === 403) {
+      if (error.status !== 401 || !authService.getRefreshToken()) {
         return throwError(() => error);
       }
 
-      if (error.status === 401 && authService.getRefreshToken()) {
-        return authService.refresh().pipe(
-          switchMap(() =>
-            next(
-              request.clone({
-                setHeaders: {
-                  Authorization: `Bearer ${authService.getToken() ?? ''}`,
-                },
-              }),
-            ),
+      return authService.refresh().pipe(
+        switchMap(() =>
+          next(
+            request.clone({
+              setHeaders: {
+                Authorization: `Bearer ${authService.getToken() ?? ''}`,
+              },
+            }),
           ),
-          catchError((refreshError) => {
-            authService.limpiarSesion();
-            void router.navigate(['/login'], { queryParams: { expired: '1' } });
-            return throwError(() => refreshError);
-          }),
-        );
-      }
-
-      return throwError(() => error);
+        ),
+        catchError(() => {
+          authService.limpiarSesion();
+          void router.navigate(['/login'], { queryParams: { expired: '1' } });
+          return throwError(() => error);
+        }),
+      );
     }),
   );
 };
