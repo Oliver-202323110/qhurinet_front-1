@@ -27,12 +27,12 @@ export class MaterialService {
     return this.http.post<Material>(this.apiUrl, material);
   }
 
-  actualizar(id: number, material: Material): Observable<Material> {
-    return this.http.put<Material>(`${this.apiUrl}/${id}`, material);
+  actualizar(id: number, material: Material): Observable<string> {
+    return this.http.put(`${this.apiUrl}/${id}`, material, { responseType: 'text' });
   }
 
-  eliminar(id: number): Observable<unknown> {
-    return this.http.delete<unknown>(`${this.apiUrl}/${id}`);
+  eliminar(id: number): Observable<string> {
+    return this.http.delete(`${this.apiUrl}/${id}`, { responseType: 'text' });
   }
 
   listarPorCategoria(categoria: string): Observable<Material[]> {

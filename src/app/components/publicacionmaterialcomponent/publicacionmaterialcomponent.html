@@ -5,7 +5,9 @@
       <h2>Materiales y publicaciones</h2>
       <p>Administra los materiales reciclables del sistema y consulta las publicaciones asociadas.</p>
     </div>
-    <button class="btn btn-primary" (click)="abrirFormularioNuevo()">+ Nuevo material</button>
+    @if (esAdmin()) {
+      <button class="btn btn-primary" (click)="abrirFormularioNuevo()">+ Nuevo material</button>
+    }
   </div>
 
   @if (mensajeError) {
@@ -68,7 +70,11 @@
       } @else if (materialesFiltrados.length === 0) {
         <div class="empty-state compact">
           <strong>No hay materiales registrados.</strong>
-          <span>Usa el botón "+ Nuevo material" para crear el primero.</span>
+          @if (esAdmin()) {
+            <span>Usa el botón "+ Nuevo material" para crear el primero.</span>
+          } @else {
+            <span>Un administrador debe registrar los materiales disponibles.</span>
+          }
         </div>
       } @else {
         <div class="table-card">
@@ -79,7 +85,9 @@
                 <th>Categoría</th>
                 <th>Pts/kg</th>
                 <th>Descripción</th>
-                <th>Acciones</th>
+                @if (esAdmin()) {
+                  <th>Acciones</th>
+                }
               </tr>
             </thead>
             <tbody>
@@ -89,18 +97,20 @@
                   <td><span class="material-chip">{{ material.categoria }}</span></td>
                   <td><strong>{{ material.puntosPorKg }}</strong></td>
                   <td>{{ material.descripcion || '—' }}</td>
-                  <td>
-                    <div class="table-actions">
-                      <button class="btn btn-soft btn-sm" (click)="abrirFormularioEditar(material)">Editar</button>
-                      <button
-                        class="btn btn-danger btn-sm"
-                        [disabled]="eliminandoId === material.id"
-                        (click)="eliminarMaterial(material)"
-                      >
-                        {{ eliminandoId === material.id ? '...' : 'Eliminar' }}
-                      </button>
-                    </div>
-                  </td>
+                  @if (esAdmin()) {
+                    <td>
+                      <div class="table-actions">
+                        <button class="btn btn-soft btn-sm" (click)="abrirFormularioEditar(material)">Editar</button>
+                        <button
+                          class="btn btn-danger btn-sm"
+                          [disabled]="eliminandoId === material.id"
+                          (click)="eliminarMaterial(material)"
+                        >
+                          {{ eliminandoId === material.id ? '...' : 'Eliminar' }}
+                        </button>
+                      </div>
+                    </td>
+                  }
                 </tr>
               }
             </tbody>
