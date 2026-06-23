@@ -3,6 +3,7 @@ import { AccessDeniedComponent } from './components/accessdeniedcomponent/access
 import { LoginComponent } from './components/authcomponent/login/login';
 import { RegisterComponent } from './components/authcomponent/register/register';
 import { CertificadoListComponent } from './components/certificadocomponent/certificado-list/certificado-list';
+import { IncentivoListComponent } from './components/incentivocomponent/incentivo-list/incentivo-list';
 import { LayoutComponent } from './components/layoutcomponent/layoutcomponent';
 import { PerfilComponent } from './components/perfilcomponent/perfilcomponent';
 import { PublicacionDetail } from './components/publicacioncomponent/publicacion-detail/publicacion-detail';
@@ -52,6 +53,10 @@ export const routes: Routes = [
       {
         path: 'certificados',
         component: CertificadoListComponent,
+      },
+      {
+        path: 'incentivos',
+        component: IncentivoListComponent,
       },
       {
         path: 'transacciones-dinero',

@@ -1,0 +1,201 @@
+<section class="page-stack">
+  <div class="page-heading">
+    <div>
+      <span class="section-tag">Incentivos</span>
+      <h2>Tienda de puntos</h2>
+      <p>Canjea recompensas, revisa desafios y consulta tu historial de incentivos.</p>
+    </div>
+    <button type="button" class="btn btn-soft" (click)="cargar()">Actualizar</button>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+  @if (mensajeExito) {
+    <div class="alert alert-success">{{ mensajeExito }}</div>
+  }
+
+  <div class="metric-grid">
+    <article class="metric-card">
+      <span>Puntos</span>
+      <strong>{{ puntosUsuario }}</strong>
+      <small>disponibles</small>
+    </article>
+    <article class="metric-card">
+      <span>Recompensas</span>
+      <strong>{{ incentivos.length }}</strong>
+      <small>activas</small>
+    </article>
+    <article class="metric-card">
+      <span>Canjes</span>
+      <strong>{{ totalCanjeados }}</strong>
+      <small>registrados</small>
+    </article>
+    <article class="metric-card">
+      <span>Desafios</span>
+      <strong>{{ desafiosDisponibles }}</strong>
+      <small>disponibles</small>
+    </article>
+  </div>
+
+  <section class="panel">
+    <div class="toolbar-row">
+      <div>
+        <h3>Recompensas y desafios</h3>
+        <p class="muted">Incentivos activos segun tu saldo de puntos.</p>
+      </div>
+      <div class="search-bar">
+        <input type="search" placeholder="Buscar incentivo" [(ngModel)]="filtro" />
+      </div>
+    </div>
+  </section>
+
+  @if (cargando) {
+    <p class="loading-text">Cargando incentivos...</p>
+  } @else if (incentivosFiltrados.length === 0) {
+    <div class="empty-state">
+      <strong>No hay incentivos para mostrar.</strong>
+      <span>Prueba con otro termino de busqueda o vuelve mas tarde.</span>
+    </div>
+  } @else {
+    <div class="cards-grid">
+      @for (incentivo of incentivosFiltrados; track trackById($index, incentivo)) {
+        <article class="panel feature-card">
+          <span
+            class="status-chip"
+            [class.warning]="estadoClase(incentivo) === 'warning'"
+            [class.inactive]="estadoClase(incentivo) === 'inactive'"
+          >
+            {{ estadoIncentivo(incentivo) }}
+          </span>
+          <h3>{{ incentivo.nombre }}</h3>
+          <p>{{ incentivo.descripcion }}</p>
+          <div class="chip-row">
+            <span class="material-chip">{{ incentivo.tipo || 'general' }}</span>
+            @if (incentivo.frecuencia) {
+              <span class="material-chip">{{ incentivo.frecuencia }}</span>
+            }
+          </div>
+          <dl class="detail-list">
+            <div><dt>Costo</dt><dd>{{ incentivo.costoPuntos || 0 }} pts</dd></div>
+            <div><dt>Stock</dt><dd>{{ incentivo.stock ?? 'Sin limite' }}</dd></div>
+            <div><dt>Vigencia</dt><dd>{{ formatearFecha(incentivo.fechaFin) }}</dd></div>
+          </dl>
+          <div class="card-actions">
+            <button type="button" class="btn btn-soft" (click)="seleccionado = incentivo">Detalle</button>
+            <button
+              type="button"
+              class="btn btn-primary"
+              [disabled]="!puedeCanjear(incentivo) || procesandoId === incentivo.id"
+              (click)="canjear(incentivo)"
+            >
+              {{ procesandoId === incentivo.id ? 'Canjeando...' : 'Canjear' }}
+            </button>
+          </div>
+        </article>
+      }
+    </div>
+  }
+
+  <div class="two-column">
+    <section class="panel">
+      <div class="panel-heading">
+        <h3>Historial de incentivos</h3>
+        <span class="status-chip">{{ historial.length }} registros</span>
+      </div>
+
+      @if (historial.length === 0) {
+        <div class="empty-state compact">
+          <strong>Aun no tienes canjes.</strong>
+          <span>Los incentivos canjeados apareceran aqui.</span>
+        </div>
+      } @else {
+        <div class="table-card">
+          <table class="data-table">
+            <thead>
+              <tr><th>Incentivo</th><th>Estado</th><th>Puntos</th><th>Fecha</th></tr>
+            </thead>
+            <tbody>
+              @for (item of historial; track trackById($index, item)) {
+                <tr>
+                  <td>{{ item.incentivoNombre }}</td>
+                  <td><span class="status-chip warning">{{ item.estado }}</span></td>
+                  <td>{{ item.puntosCanjeados }}</td>
+                  <td>{{ formatearFecha(item.fechaCanje) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+
+    <section class="panel">
+      <h3>Recordatorios y logros</h3>
+      @if (notificaciones.length === 0) {
+        <div class="empty-state compact">
+          <strong>Sin recordatorios activos.</strong>
+          <span>Cuando tengas recompensas o logros pendientes, se mostraran aqui.</span>
+        </div>
+      } @else {
+        <ul class="clean-list">
+          @for (notificacion of notificaciones; track $index) {
+            <li>
+              <strong>{{ notificacion.titulo }}</strong>
+              <span>{{ notificacion.detalle }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </section>
+  </div>
+
+  <section class="panel">
+    <div class="panel-heading">
+      <h3>Valor de puntos por accion</h3>
+      <span class="section-tag">Bloque 5</span>
+    </div>
+    <div class="table-card">
+      <table class="data-table">
+        <thead>
+          <tr><th>Accion</th><th>Descripcion</th><th>Puntos</th></tr>
+        </thead>
+        <tbody>
+          @for (accion of valoresPuntos; track trackById($index, accion)) {
+            <tr>
+              <td>{{ accion.accion }}</td>
+              <td>{{ accion.descripcion }}</td>
+              <td>{{ accion.puntos }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  @if (seleccionado) {
+    <div class="modal-backdrop" (click)="seleccionado = null">
+      <article class="modal-card" (click)="$event.stopPropagation()">
+        <h3>{{ seleccionado.nombre }}</h3>
+        <p>{{ seleccionado.descripcion }}</p>
+        <dl class="detail-list">
+          <div><dt>Tipo</dt><dd>{{ seleccionado.tipo || 'general' }}</dd></div>
+          <div><dt>Costo</dt><dd>{{ seleccionado.costoPuntos || 0 }} puntos</dd></div>
+          <div><dt>Estado</dt><dd>{{ estadoIncentivo(seleccionado) }}</dd></div>
+          <div><dt>Disponible hasta</dt><dd>{{ formatearFecha(seleccionado.fechaFin) }}</dd></div>
+        </dl>
+        <div class="modal-actions">
+          <button type="button" class="btn btn-soft" (click)="seleccionado = null">Cerrar</button>
+          <button
+            type="button"
+            class="btn btn-primary"
+            [disabled]="!puedeCanjear(seleccionado) || procesandoId === seleccionado.id"
+            (click)="canjear(seleccionado)"
+          >
+            Canjear incentivo
+          </button>
+        </div>
+      </article>
+    </div>
+  }
+</section>

@@ -27,6 +27,7 @@ export class LayoutComponent {
     { label: 'Explorar puntos', path: '/publicaciones/explorar' },
     { label: 'Perfil', path: '/perfil' },
     { label: 'Certificados', path: '/certificados' },
+    { label: 'Incentivos', path: '/incentivos' },
     { label: 'Transacciones', path: '/transacciones-dinero' },
     { label: 'Verificacion', path: '/verificacion' },
     { label: 'Revision docs', path: '/verificacion/admin', roles: ['ADMIN'] },
