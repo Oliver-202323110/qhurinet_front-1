@@ -99,31 +99,28 @@ export class Publicacionmaterialcomponent implements OnInit {
     this.mensajeError = '';
     this.mensajeExito = '';
 
+    const nombre = this.nuevoMaterial.nombre;
+    const onExito = (verbo: string) => {
+      this.guardando = false;
+      this.cancelarFormulario();
+      this.mensajeExito = `Material "${nombre}" ${verbo} correctamente.`;
+      this.cargarMateriales();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    };
+    const onError = (error: unknown) => {
+      this.mensajeError = obtenerMensajeBackend(error);
+      this.guardando = false;
+    };
+
     if (this.editandoMaterial) {
       this.materialService.actualizar(this.editandoMaterial.id, this.nuevoMaterial).subscribe({
-        next: () => {
-          this.mensajeExito = `Material "${this.nuevoMaterial.nombre}" actualizado correctamente.`;
-          this.guardando = false;
-          this.cancelarFormulario();
-          this.cargarMateriales();
-        },
-        error: (error) => {
-          this.mensajeError = obtenerMensajeBackend(error);
-          this.guardando = false;
-        },
+        next: () => onExito('actualizado'),
+        error: onError,
       });
     } else {
       this.materialService.crear(this.nuevoMaterial).subscribe({
-        next: () => {
-          this.mensajeExito = `Material "${this.nuevoMaterial.nombre}" creado correctamente.`;
-          this.guardando = false;
-          this.cancelarFormulario();
-          this.cargarMateriales();
-        },
-        error: (error) => {
-          this.mensajeError = obtenerMensajeBackend(error);
-          this.guardando = false;
-        },
+        next: () => onExito('creado'),
+        error: onError,
       });
     }
   }
