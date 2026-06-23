@@ -1,0 +1,17 @@
+:host {
+  display: block;
+}
+
+.toolbar-row h3,
+.panel-heading h3 {
+  margin: 0;
+}
+
+.clean-list li {
+  display: grid;
+  gap: 4px;
+}
+
+.table-card {
+  overflow-x: auto;
+}
