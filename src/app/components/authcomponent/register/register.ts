@@ -28,7 +28,6 @@ export class RegisterComponent {
 
   readonly rolesPermitidos = [
     { value: 'EMISOR', label: 'Emisor eco-consciente' },
-    { value: 'BODEGA', label: 'Bodega o pequeño comercio' },
     { value: 'RECOLECTOR', label: 'Recolector' },
   ];
 
