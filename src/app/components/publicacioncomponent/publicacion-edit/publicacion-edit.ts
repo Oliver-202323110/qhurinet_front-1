@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -56,6 +56,7 @@ export class PublicacionEdit implements OnInit {
     private readonly publicacionService: PublicacionService,
     private readonly materialService: MaterialService,
     private readonly authService: AuthService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -70,6 +71,7 @@ export class PublicacionEdit implements OnInit {
         if (!this.authService.isAdmin() && publicacion.idUsuario !== idUsuario) {
           this.mensajeError = 'No tienes permisos para editar esta publicación.';
           this.cargando = false;
+          this.cdr.detectChanges();
           return;
         }
 
@@ -86,10 +88,12 @@ export class PublicacionEdit implements OnInit {
           observaciones: '',
         });
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
         this.cargando = false;
+        this.cdr.detectChanges();
       },
     });
   }

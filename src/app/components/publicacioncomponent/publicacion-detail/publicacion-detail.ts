@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PublicacionDetalle } from '../../../models/PublicacionDetalle';
 import { AuthService } from '../../../services/authservice';
@@ -21,6 +21,7 @@ export class PublicacionDetail implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly publicacionService: PublicacionService,
     public readonly authService: AuthService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -29,10 +30,12 @@ export class PublicacionDetail implements OnInit {
       next: (detalle) => {
         this.detalle = detalle;
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
         this.cargando = false;
+        this.cdr.detectChanges();
       },
     });
   }
