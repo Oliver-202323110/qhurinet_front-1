@@ -1,5 +1,5 @@
 import { CommonModule, CurrencyPipe, DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { TransaccionDinero } from '../../../models/TransaccionDinero';
 import { AuthService } from '../../../services/authservice';
@@ -22,6 +22,7 @@ export class TransaccionDineroListComponent implements OnInit {
   constructor(
     private readonly transaccionService: TransaccionDineroService,
     public readonly authService: AuthService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -34,6 +35,7 @@ export class TransaccionDineroListComponent implements OnInit {
     if (!idUsuario) {
       this.mensajeError = 'No se pudo identificar al usuario autenticado.';
       this.cargando = false;
+      this.cdr.detectChanges();
       return;
     }
 
@@ -45,10 +47,12 @@ export class TransaccionDineroListComponent implements OnInit {
       next: (transacciones) => {
         this.transacciones = transacciones;
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
         this.cargando = false;
+        this.cdr.detectChanges();
       },
     });
   }

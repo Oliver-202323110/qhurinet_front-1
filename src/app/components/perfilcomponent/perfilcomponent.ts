@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { forkJoin, switchMap } from 'rxjs';
 import { Usuario, UsuarioPerfil } from '../../models/Usuario';
@@ -7,6 +7,7 @@ import { ArchivoService } from '../../services/archivoservice';
 import { AuthService } from '../../services/authservice';
 import { UsuarioService } from '../../services/usuarioservice';
 import { obtenerMensajeBackend } from '../../utils/backend-error';
+import { API_BASE_URL } from '../../config/api.config';
 
 @Component({
   selector: 'app-perfilcomponent',
@@ -36,6 +37,7 @@ export class PerfilComponent implements OnInit {
     private readonly usuarioService: UsuarioService,
     private readonly authService: AuthService,
     private readonly archivoService: ArchivoService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -45,6 +47,7 @@ export class PerfilComponent implements OnInit {
   cargarPerfil(): void {
     this.cargando = true;
     this.mensajeError = '';
+    this.cdr.detectChanges();
 
     this.usuarioService
       .me()
@@ -52,23 +55,28 @@ export class PerfilComponent implements OnInit {
         switchMap((usuario) => {
           this.usuario = usuario;
           this.authService.guardarUsuario(usuario);
+          this.cdr.detectChanges();
+
           return this.usuarioService.perfil(usuario.id);
         }),
       )
       .subscribe({
         next: (perfil) => {
           this.perfil = perfil;
+
           this.form.patchValue({
-            nombre: perfil.nombre,
-            telefono: '',
-            descripcion: perfil.descripcion,
+            nombre: perfil.nombre ?? '',
+            descripcion: perfil.descripcion ?? '',
             tipoCuenta: perfil.tipoCuenta || 'GENERADOR',
           });
+
           this.cargando = false;
+          this.cdr.detectChanges();
         },
         error: (error) => {
           this.mensajeError = obtenerMensajeBackend(error);
           this.cargando = false;
+          this.cdr.detectChanges();
         },
       });
   }
@@ -109,11 +117,14 @@ export class PerfilComponent implements OnInit {
         this.guardando = false;
         this.foto = null;
         this.mensajeExito = 'Perfil actualizado correctamente.';
+        this.cdr.detectChanges();
+
         this.cargarPerfil();
       },
       error: (error) => {
         this.guardando = false;
         this.mensajeError = obtenerMensajeBackend(error);
+        this.cdr.detectChanges();
       },
     });
   }
@@ -136,6 +147,22 @@ export class PerfilComponent implements OnInit {
     }
 
     this.foto = file;
+  }
+
+  obtenerFotoPerfil(): string {
+    return this.normalizarUrlArchivo(this.perfil?.fotoUrl);
+  }
+
+  private normalizarUrlArchivo(url?: string): string {
+    if (!url) {
+      return '';
+    }
+
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+      return url;
+    }
+
+    return `${API_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
   }
 
   inicial(): string {

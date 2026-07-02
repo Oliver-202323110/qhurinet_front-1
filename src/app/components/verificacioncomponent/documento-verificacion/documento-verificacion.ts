@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { switchMap } from 'rxjs';
 import { DocumentoVerificacion } from '../../../models/DocumentoVerificacion';
@@ -7,6 +7,7 @@ import { ArchivoService } from '../../../services/archivoservice';
 import { AuthService } from '../../../services/authservice';
 import { DocumentoVerificacionService } from '../../../services/documentoverificacionservice';
 import { obtenerMensajeBackend } from '../../../utils/backend-error';
+import { API_BASE_URL } from '../../../config/api.config';
 
 @Component({
   selector: 'app-documento-verificacion',
@@ -33,6 +34,7 @@ export class DocumentoVerificacionComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly documentoService: DocumentoVerificacionService,
     private readonly archivoService: ArchivoService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -44,23 +46,31 @@ export class DocumentoVerificacionComponent implements OnInit, OnDestroy {
   }
 
   cargar(): void {
+    this.cargando = true;
     this.mensajeError = '';
+    this.cdr.detectChanges();
+
     const idUsuario = this.authService.getCurrentUserId();
 
     if (!idUsuario) {
       this.mensajeError = 'No se pudo identificar al usuario autenticado.';
+      this.documentos = [];
       this.cargando = false;
+      this.cdr.detectChanges();
       return;
     }
 
     this.documentoService.listarPorUsuario(idUsuario).subscribe({
       next: (documentos) => {
-        this.documentos = documentos;
+        this.documentos = documentos ?? [];
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
+        this.documentos = [];
         this.mensajeError = obtenerMensajeBackend(error);
         this.cargando = false;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -124,16 +134,22 @@ export class DocumentoVerificacionComponent implements OnInit, OnDestroy {
         ),
       )
       .subscribe({
-        next: () => {
+        next: (documentoCreado) => {
           this.enviando = false;
           this.archivo = null;
           this.revocarPreview();
+
+          this.documentos = [documentoCreado, ...this.documentos];
+
           this.mensajeExito = 'Documentación enviada correctamente.';
+          this.cdr.detectChanges();
+
           this.cargar();
         },
         error: (error) => {
           this.enviando = false;
           this.mensajeError = obtenerMensajeBackend(error);
+          this.cdr.detectChanges();
         },
       });
   }
@@ -162,6 +178,22 @@ export class DocumentoVerificacionComponent implements OnInit, OnDestroy {
 
   puedeEnviar(): boolean {
     return !this.enviando && !this.tieneAprobado();
+  }
+
+  obtenerUrlArchivo(documento: DocumentoVerificacion): string {
+    return this.normalizarUrlArchivo(documento.urlArchivo);
+  }
+
+  private normalizarUrlArchivo(url?: string): string {
+    if (!url) {
+      return '';
+    }
+
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+      return url;
+    }
+
+    return `${API_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
   }
 
   private revocarPreview(): void {

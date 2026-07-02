@@ -1,3 +1,12 @@
 :host {
   display: block;
 }
+
+.document-preview {
+  width: 100%;
+  max-height: 180px;
+  object-fit: cover;
+  border-radius: 14px;
+  border: 1px solid #d9e7df;
+  margin: 10px 0;
+}
