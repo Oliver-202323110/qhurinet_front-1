@@ -76,18 +76,26 @@ export class PublicacionInsert implements OnInit {
 
   cargarMateriales(): void {
     this.cargandoMateriales = true;
-    this.materialService.listarMisMateriales().subscribe({
+    this.mensajeError = '';
+
+    this.materialService.listar().subscribe({
       next: (materiales) => {
-        this.materialesDisponibles = materiales;
+        this.materialesDisponibles = materiales ?? [];
         this.materialesArray.clear();
-        materiales.forEach((material) => this.materialesArray.push(this.crearGrupoMaterial(material)));
+
+        this.materialesDisponibles.forEach((material) => {
+          this.materialesArray.push(this.crearGrupoMaterial(material));
+        });
+
+        this.materialesArray.updateValueAndValidity();
         this.cargandoMateriales = false;
       },
       error: (error) => {
-        this.mensajeError =
-          obtenerMensajeBackend(error) ||
-          'No se pudo preparar la sesión técnica para cargar materiales.';
+        this.materialesDisponibles = [];
+        this.materialesArray.clear();
         this.cargandoMateriales = false;
+        this.mensajeError =
+          obtenerMensajeBackend(error) || 'No se pudieron cargar los materiales registrados.';
       },
     });
   }

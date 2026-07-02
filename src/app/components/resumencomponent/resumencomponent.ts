@@ -59,6 +59,30 @@ export class ResumenComponent implements OnInit {
     return this.publicaciones.slice(0, 2);
   }
 
+  get esGenerador(): boolean {
+  return this.authService.tieneRol(['GENERADOR', 'EMISOR']);
+  }
+
+  get esRecolector(): boolean {
+    return this.authService.tieneRol(['RECOLECTOR', 'BODEGA']);
+  }
+
+  get esAdmin(): boolean {
+    return this.authService.tieneRol(['ADMIN']);
+  }
+
+  get puedePublicarMaterial(): boolean {
+    return this.esGenerador || this.esRecolector || this.esAdmin;
+  }
+
+  get puedeExplorarPuntos(): boolean {
+    return this.esGenerador || this.esAdmin;
+  }
+
+  get puedeVerCertificados(): boolean {
+    return this.esRecolector || this.esAdmin;
+  }
+
   formatearFecha(fecha: string): string {
     if (!fecha) {
       return '';

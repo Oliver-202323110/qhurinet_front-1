@@ -1,12 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { forkJoin, map, of, switchMap, catchError } from 'rxjs';
 import { MaterialDetalle } from '../../../models/PublicacionDetalle';
 import { Publicacion } from '../../../models/Publicacion';
 import { AuthService } from '../../../services/authservice';
 import { PublicacionService } from '../../../services/publicacionservice';
 import { obtenerMensajeBackend } from '../../../utils/backend-error';
+import { API_BASE_URL } from '../../../config/api.config';
 
 interface PublicacionCard {
   publicacion: Publicacion;
@@ -37,6 +37,7 @@ export class PublicacionList implements OnInit {
     private readonly authService: AuthService,
     private readonly publicacionService: PublicacionService,
     private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -47,57 +48,110 @@ export class PublicacionList implements OnInit {
     return this.authService.isAdmin();
   }
 
+  obtenerImagenPublicacion(publicacion: Publicacion): string {
+    if (!publicacion.imagenesJson) {
+      return '';
+    }
+
+    try {
+      const imagenes = JSON.parse(publicacion.imagenesJson);
+      const url = Array.isArray(imagenes) ? imagenes[0]?.url : imagenes?.url;
+      return this.normalizarUrlImagen(url);
+    } catch {
+      return this.normalizarUrlImagen(publicacion.imagenesJson);
+    }
+  }
+
+  private normalizarUrlImagen(url?: string): string {
+    if (!url) {
+      return '';
+    }
+
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+      return url;
+    }
+
+      return `${API_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
+  }
+
   cargarPublicaciones(): void {
     this.cargando = true;
     this.mensajeError = '';
+    this.mensajeExito = '';
 
     const idUsuario = this.authService.getCurrentUserId();
 
     if (!idUsuario) {
       this.cargando = false;
       this.mensajeError = 'No se pudo identificar al usuario autenticado. Inicia sesión nuevamente.';
+      this.cdr.detectChanges();
       return;
     }
 
-    this.publicacionService
-      .listarPorUsuario(idUsuario)
-      .pipe(
-        switchMap((publicaciones) => {
-          if (publicaciones.length === 0) {
-            return of([]);
-          }
+    const consulta$ = this.esAdmin()
+      ? this.publicacionService.listar()
+      : this.publicacionService.listarPorUsuario(idUsuario);
 
-          return forkJoin(
-            publicaciones.map((publicacion) =>
-              this.publicacionService.obtenerDetalle(publicacion.id).pipe(
-                map((detalle) => ({
-                  publicacion,
-                  materiales: detalle.materiales ?? [],
-                  errorDetalle: '',
-                })),
-                catchError(() =>
-                  of({
-                    publicacion,
-                    materiales: [] as MaterialDetalle[],
-                    errorDetalle: 'No se pudieron cargar los materiales.',
-                  }),
-                ),
-              ),
-            ),
+    consulta$.subscribe({
+      next: (publicaciones) => {
+        this.todasPublicaciones = (publicaciones ?? []).map((publicacion) => ({
+          publicacion,
+          materiales: [],
+          errorDetalle: '',
+        }));
+
+        this.actualizarPaginacion();
+        this.cargando = false;
+
+        this.cdr.detectChanges();
+
+        this.cargarMaterialesDePublicaciones();
+      },
+      error: (error) => {
+        this.mensajeError = obtenerMensajeBackend(error);
+        this.cargando = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private cargarMaterialesDePublicaciones(): void {
+    this.todasPublicaciones.forEach((card, index) => {
+      if (!card.publicacion.id) {
+        return;
+      }
+
+      this.publicacionService.obtenerDetalle(card.publicacion.id).subscribe({
+        next: (detalle) => {
+          const cardActualizada: PublicacionCard = {
+            ...card,
+            materiales: detalle.materiales ?? [],
+            errorDetalle: '',
+          };
+
+          this.todasPublicaciones = this.todasPublicaciones.map((item, i) =>
+            i === index ? cardActualizada : item,
           );
-        }),
-      )
-      .subscribe({
-        next: (publicaciones) => {
-          this.todasPublicaciones = publicaciones;
+
           this.actualizarPaginacion();
-          this.cargando = false;
+          this.cdr.detectChanges();
         },
-        error: (error) => {
-          this.mensajeError = obtenerMensajeBackend(error);
-          this.cargando = false;
+        error: () => {
+          const cardActualizada: PublicacionCard = {
+            ...card,
+            materiales: [],
+            errorDetalle: 'No se pudieron cargar los materiales.',
+          };
+
+          this.todasPublicaciones = this.todasPublicaciones.map((item, i) =>
+            i === index ? cardActualizada : item,
+          );
+
+          this.actualizarPaginacion();
+          this.cdr.detectChanges();
         },
       });
+    });
   }
 
   editar(id: number): void {
@@ -168,19 +222,24 @@ export class PublicacionList implements OnInit {
     this.eliminandoId = card.publicacion.id;
     this.mensajeError = '';
     this.mensajeExito = '';
+    this.cdr.detectChanges();
 
     this.publicacionService.eliminar(card.publicacion.id).subscribe({
       next: () => {
         this.todasPublicaciones = this.todasPublicaciones.filter(
           (item) => item.publicacion.id !== card.publicacion.id,
         );
+
         this.actualizarPaginacion();
+
         this.mensajeExito = 'Publicación eliminada correctamente.';
         this.eliminandoId = null;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
         this.eliminandoId = null;
+        this.cdr.detectChanges();
       },
     });
   }

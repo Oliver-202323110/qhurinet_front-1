@@ -17,6 +17,7 @@ export class Publicacion {
 
   activo: boolean = true;
   createdAt: string = '';
+  imagenesJson: string = '';
 
   constructor() {}
 }

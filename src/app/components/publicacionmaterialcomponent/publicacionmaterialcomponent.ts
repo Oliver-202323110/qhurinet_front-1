@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { forkJoin, of, catchError, map, switchMap } from 'rxjs';
+import { forkJoin, of, catchError, map, switchMap} from 'rxjs';
 import { Material } from '../../models/Material';
 import { Publicacion } from '../../models/Publicacion';
 import { MaterialDetalle, PublicacionDetalle } from '../../models/PublicacionDetalle';
@@ -42,6 +42,7 @@ export class Publicacionmaterialcomponent implements OnInit {
     private readonly materialService: MaterialService,
     private readonly publicacionService: PublicacionService,
     private readonly authService: AuthService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -68,6 +69,7 @@ export class Publicacionmaterialcomponent implements OnInit {
     this.mostrarFormulario = true;
     this.mensajeError = '';
     this.mensajeExito = '';
+    this.cdr.detectChanges();
   }
 
   abrirFormularioEditar(material: Material): void {
@@ -76,51 +78,72 @@ export class Publicacionmaterialcomponent implements OnInit {
     this.mostrarFormulario = true;
     this.mensajeError = '';
     this.mensajeExito = '';
+    this.cdr.detectChanges();
   }
 
   cancelarFormulario(): void {
     this.mostrarFormulario = false;
     this.editandoMaterial = null;
     this.nuevoMaterial = new Material();
+    this.guardando = false;
+    this.cdr.detectChanges();
   }
 
   guardarMaterial(): void {
     if (!this.nuevoMaterial.nombre.trim() || !this.nuevoMaterial.categoria.trim()) {
       this.mensajeError = 'Nombre y categoría son obligatorios.';
+      this.cdr.detectChanges();
       return;
     }
 
     if (this.nuevoMaterial.puntosPorKg < 0) {
       this.mensajeError = 'Los puntos por kg deben ser mayor o igual a 0.';
+      this.cdr.detectChanges();
       return;
     }
 
     this.guardando = true;
     this.mensajeError = '';
     this.mensajeExito = '';
+    this.cdr.detectChanges();
 
     const nombre = this.nuevoMaterial.nombre;
-    const onExito = (verbo: string) => {
+
+    const cerrarYActualizar = (mensaje: string) => {
       this.guardando = false;
-      this.cancelarFormulario();
-      this.mensajeExito = `Material "${nombre}" ${verbo} correctamente.`;
+      this.mostrarFormulario = false;
+      this.editandoMaterial = null;
+      this.nuevoMaterial = new Material();
+
+      this.mensajeExito = mensaje;
+
+      this.cdr.detectChanges();
+
       this.cargarMateriales();
+      this.cargarPublicaciones();
+
       window.scrollTo({ top: 0, behavior: 'smooth' });
     };
-    const onError = (error: unknown) => {
-      this.mensajeError = obtenerMensajeBackend(error);
+
+    const manejarError = (error: unknown) => {
       this.guardando = false;
+      this.mensajeError = obtenerMensajeBackend(error);
+      this.cdr.detectChanges();
     };
 
     if (this.editandoMaterial) {
       this.materialService.actualizar(this.editandoMaterial.id, this.nuevoMaterial).subscribe({
-        next: () => onExito('actualizado'),
-        error: onError,
+        next: () => {
+          cerrarYActualizar(`Material "${nombre}" actualizado correctamente.`);
+        },
+        error: manejarError,
       });
     } else {
       this.materialService.crear(this.nuevoMaterial).subscribe({
-        next: () => onExito('creado'),
-        error: onError,
+        next: () => {
+          cerrarYActualizar(`Material "${nombre}" creado correctamente.`);
+        },
+        error: manejarError,
       });
     }
   }
@@ -143,6 +166,7 @@ export class Publicacionmaterialcomponent implements OnInit {
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
         this.eliminandoId = null;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -155,62 +179,96 @@ export class Publicacionmaterialcomponent implements OnInit {
 
   private cargarMateriales(): void {
     this.cargandoMateriales = true;
-    this.materialService.listarMisMateriales().subscribe({
+    this.mensajeError = '';
+    this.cdr.detectChanges();
+
+    this.materialService.listar().subscribe({
       next: (materiales) => {
-        this.materiales = materiales;
-        this.categorias = [...new Set(materiales.map((m) => m.categoria).filter(Boolean))];
+        this.materiales = materiales ?? [];
+        this.categorias = [
+          ...new Set(this.materiales.map((m) => m.categoria).filter(Boolean)),
+        ];
         this.cargandoMateriales = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
         this.cargandoMateriales = false;
+        this.cdr.detectChanges();
       },
     });
   }
 
   private cargarPublicaciones(): void {
     this.cargandoPublicaciones = true;
+    this.cdr.detectChanges();
+
     const idUsuario = this.authService.getCurrentUserId();
 
     if (!idUsuario) {
+      this.publicaciones = [];
       this.cargandoPublicaciones = false;
+      this.cdr.detectChanges();
       return;
     }
 
-    this.publicacionService
-      .listarPorUsuario(idUsuario)
-      .pipe(
-        switchMap((publicaciones) => {
-          if (publicaciones.length === 0) {
-            return of([]);
-          }
-          return forkJoin(
-            publicaciones.map((pub) =>
-              this.publicacionService.obtenerDetalle(pub.id).pipe(
-                map((detalle) => ({
-                  publicacion: pub,
+    const consulta$ = this.esAdmin()
+      ? this.publicacionService.listar()
+      : this.publicacionService.listarPorUsuario(idUsuario);
+
+    consulta$.subscribe({
+      next: (publicaciones) => {
+        this.publicaciones = (publicaciones ?? []).map((publicacion) => ({
+          publicacion,
+          materiales: [],
+        }));
+
+        this.cargandoPublicaciones = false;
+        this.cdr.detectChanges();
+
+        this.cargarMaterialesDePublicaciones();
+      },
+      error: (error) => {
+        this.mensajeError = obtenerMensajeBackend(error);
+        this.publicaciones = [];
+        this.cargandoPublicaciones = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private cargarMaterialesDePublicaciones(): void {
+    this.publicaciones.forEach((item, index) => {
+      if (!item.publicacion.id) {
+        return;
+      }
+
+      this.publicacionService.obtenerDetalle(item.publicacion.id).subscribe({
+        next: (detalle) => {
+          this.publicaciones = this.publicaciones.map((pub, i) =>
+            i === index
+              ? {
+                  ...pub,
                   materiales: detalle.materiales ?? [],
-                })),
-                catchError(() =>
-                  of({
-                    publicacion: pub,
-                    materiales: [] as MaterialDetalle[],
-                  }),
-                ),
-              ),
-            ),
+                }
+              : pub,
           );
-        }),
-      )
-      .subscribe({
-        next: (publicaciones) => {
-          this.publicaciones = publicaciones;
-          this.cargandoPublicaciones = false;
+
+          this.cdr.detectChanges();
         },
-        error: (error) => {
-          this.mensajeError = obtenerMensajeBackend(error);
-          this.cargandoPublicaciones = false;
+        error: () => {
+          this.publicaciones = this.publicaciones.map((pub, i) =>
+            i === index
+              ? {
+                  ...pub,
+                  materiales: [],
+                }
+              : pub,
+          );
+
+          this.cdr.detectChanges();
         },
       });
+    });
   }
 }

@@ -4,7 +4,9 @@
       <h2>Hola, {{ nombreUsuario }}</h2>
       <p>Publica materiales, coordina recojos y revisa tu avance.</p>
     </div>
-    <a routerLink="/publicaciones/nuevo" class="btn btn-primary">+ Publicar material</a>
+    @if (puedePublicarMaterial) {
+      <a routerLink="/publicaciones/nuevo" class="btn btn-primary">+ Publicar material</a>
+    }
   </div>
 
   @if (mensajeError) {
@@ -74,13 +76,16 @@
     <section class="panel">
       <h3>Accesos rápidos</h3>
       <div class="quick-list">
-        <a routerLink="/publicaciones/nuevo" class="quick-link">
-          <span class="quick-icon">+</span>
-          <span>
-            <strong>Publicar material</strong>
-            <small>Nueva publicación</small>
-          </span>
-        </a>
+        @if (puedePublicarMaterial) {
+          <a routerLink="/publicaciones/nuevo" class="quick-link">
+            <span class="quick-icon">+</span>
+            <span>
+              <strong>Publicar material</strong>
+              <small>Nueva publicación</small>
+            </span>
+          </a>
+        }
+
         <a routerLink="/publicaciones/lista" class="quick-link">
           <span class="quick-icon">P</span>
           <span>
@@ -88,6 +93,27 @@
             <small>Listado y edición</small>
           </span>
         </a>
+
+        @if (puedeExplorarPuntos) {
+          <a routerLink="/publicaciones/explorar" class="quick-link">
+            <span class="quick-icon">M</span>
+            <span>
+              <strong>Explorar puntos</strong>
+              <small>Mapa y puntos cercanos</small>
+            </span>
+          </a>
+        }
+
+        @if (puedeVerCertificados) {
+          <a routerLink="/certificados" class="quick-link">
+            <span class="quick-icon">C</span>
+            <span>
+              <strong>Certificados</strong>
+              <small>Aportes y comprobantes</small>
+            </span>
+          </a>
+        }
+
         <a routerLink="/incentivos" class="quick-link">
           <span class="quick-icon">I</span>
           <span>

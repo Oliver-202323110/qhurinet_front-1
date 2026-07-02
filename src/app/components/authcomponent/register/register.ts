@@ -27,7 +27,7 @@ export class RegisterComponent {
   private readonly fb = inject(FormBuilder);
 
   readonly rolesPermitidos = [
-    { value: 'EMISOR', label: 'Emisor eco-consciente' },
+    { value: 'GENERADOR', label: 'Emisor eco-consciente' },
     { value: 'RECOLECTOR', label: 'Recolector' },
   ];
 

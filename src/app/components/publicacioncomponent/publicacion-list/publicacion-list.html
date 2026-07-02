@@ -32,7 +32,12 @@
             <span class="status-chip floating" [class.inactive]="!card.publicacion.activo">
               {{ card.publicacion.activo ? 'disponible' : 'inactiva' }}
             </span>
-            <span>imagen no disponible</span>
+
+            @if (obtenerImagenPublicacion(card.publicacion); as imagenUrl) {
+              <img [src]="imagenUrl" [alt]="card.publicacion.titulo" class="publication-photo" />
+            } @else {
+              <span>imagen no disponible</span>
+            }
           </div>
 
           <div class="publication-body">
@@ -44,13 +49,19 @@
               }
             </p>
 
-            @if (card.materiales.length > 0) {
+           @if (card.materiales.length > 0) {
               <div class="chip-row">
                 @for (material of card.materiales; track trackByMaterial($index, material)) {
                   <span class="material-chip">
                     {{ material.nombreMaterial }} · {{ material.cantidad }} {{ material.unidad || 'kg' }}
                   </span>
                 }
+              </div>
+            } @else if (card.publicacion.material) {
+              <div class="chip-row">
+                <span class="material-chip">
+                  {{ card.publicacion.material }} · {{ card.publicacion.categoria || 'sin categoría' }}
+                </span>
               </div>
             } @else {
               <p class="detail-warning">{{ card.errorDetalle || 'Materiales no disponibles.' }}</p>

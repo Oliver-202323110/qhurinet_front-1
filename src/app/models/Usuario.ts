@@ -6,6 +6,7 @@ export interface Usuario {
   enabled: boolean;
   createdAt?: string;
   roles: string[];
+  tipoCuenta?: string;
 }
 
 export interface UsuarioPerfil {

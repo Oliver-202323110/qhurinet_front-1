@@ -22,17 +22,59 @@ export class LayoutComponent {
   pageTitle = 'Resumen';
 
   readonly navItems: NavItem[] = [
-    { label: 'Resumen', path: '/resumen' },
-    { label: 'Publicaciones', path: '/publicaciones/lista' },
-    { label: 'Explorar puntos', path: '/publicaciones/explorar' },
-    { label: 'Materiales', path: '/materiales' },
-    { label: 'Perfil', path: '/perfil' },
-    { label: 'Certificados', path: '/certificados' },
-    { label: 'Incentivos', path: '/incentivos' },
-    { label: 'Transacciones', path: '/transacciones-dinero' },
-    { label: 'Verificacion', path: '/verificacion' },
-    { label: 'Revision docs', path: '/verificacion/admin', roles: ['ADMIN'] },
-    { label: 'Roles', path: '/roles', roles: ['ADMIN'] },
+    {
+      label: 'Resumen',
+      path: '/resumen',
+    },
+    {
+      label: 'Publicaciones',
+      path: '/publicaciones/lista',
+      roles: ['GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA', 'ADMIN'],
+    },
+    {
+      label: 'Explorar puntos',
+      path: '/publicaciones/explorar',
+      roles: ['GENERADOR', 'EMISOR', 'ADMIN'],
+    },
+    {
+      label: 'Materiales',
+      path: '/materiales',
+      roles: ['ADMIN'],
+    },
+    {
+      label: 'Perfil',
+      path: '/perfil',
+    },
+    {
+      label: 'Certificados',
+      path: '/certificados',
+      roles: ['RECOLECTOR', 'BODEGA', 'ADMIN'],
+    },
+    {
+      label: 'Incentivos',
+      path: '/incentivos',
+      roles: ['GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA', 'ADMIN'],
+    },
+    {
+      label: 'Transacciones',
+      path: '/transacciones-dinero',
+      roles: ['ADMIN'],
+    },
+    {
+      label: 'Verificacion',
+      path: '/verificacion',
+      roles: ['GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA', 'ADMIN'],
+    },
+    {
+      label: 'Revision docs',
+      path: '/verificacion/admin',
+      roles: ['ADMIN'],
+    },
+    {
+      label: 'Roles',
+      path: '/roles',
+      roles: ['ADMIN'],
+    },
   ];
 
   constructor(

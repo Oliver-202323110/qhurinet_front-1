@@ -56,18 +56,26 @@ export const routes: Routes = [
       {
         path: 'certificados',
         component: CertificadoListComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['RECOLECTOR', 'BODEGA', 'ADMIN'] },
       },
       {
         path: 'incentivos',
         component: IncentivoListComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA', 'ADMIN'] },
       },
       {
         path: 'transacciones-dinero',
         component: TransaccionDineroListComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] },
       },
       {
         path: 'verificacion',
         component: DocumentoVerificacionComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA', 'ADMIN'] },
       },
       {
         path: 'verificacion/admin',
@@ -88,10 +96,14 @@ export const routes: Routes = [
       {
         path: 'materiales',
         component: Publicacionmaterialcomponent,
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN'] },
       },
       {
         path: 'publicaciones',
         component: PublicacionComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA', 'ADMIN'] },
         children: [
           {
             path: '',
@@ -101,22 +113,32 @@ export const routes: Routes = [
           {
             path: 'lista',
             component: PublicacionList,
+            canActivate: [roleGuard],
+            data: { roles: ['GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA', 'ADMIN'] },
           },
           {
             path: 'nuevo',
             component: PublicacionInsert,
+            canActivate: [roleGuard],
+            data: { roles: ['GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA', 'ADMIN'] },
           },
           {
             path: 'explorar',
             component: PublicacionExplore,
+            canActivate: [roleGuard],
+            data: { roles: ['GENERADOR', 'EMISOR', 'ADMIN'] },
           },
           {
             path: 'detalle/:id',
             component: PublicacionDetail,
+            canActivate: [roleGuard],
+            data: { roles: ['GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA', 'ADMIN'] },
           },
           {
             path: 'editar/:id',
             component: PublicacionEdit,
+            canActivate: [roleGuard],
+            data: { roles: ['GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA', 'ADMIN'] },
           },
         ],
       },

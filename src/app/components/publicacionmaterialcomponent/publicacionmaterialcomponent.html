@@ -17,7 +17,7 @@
   }
 
   @if (mostrarFormulario) {
-    <div class="modal-backdrop" (click)="cancelarFormulario()">
+    <div class="modal-backdrop" (click)="!guardando && cancelarFormulario()">
       <div class="modal-card" (click)="$event.stopPropagation()">
         <h3>{{ editandoMaterial ? 'Editar material' : 'Nuevo material' }}</h3>
 

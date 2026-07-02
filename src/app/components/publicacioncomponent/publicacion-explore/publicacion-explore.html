@@ -39,7 +39,12 @@
         <article class="publication-card">
           <div class="publication-image">
             <span class="status-chip floating">disponible</span>
-            <span>imagen no disponible</span>
+
+            @if (obtenerImagenPublicacion(publicacion); as imagenUrl) {
+              <img [src]="imagenUrl" [alt]="publicacion.titulo" class="publication-photo" />
+            } @else {
+              <span>imagen no disponible</span>
+            }
           </div>
           <div class="publication-body">
             <h3>{{ publicacion.titulo }}</h3>

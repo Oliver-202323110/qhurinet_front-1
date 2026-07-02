@@ -1,11 +1,12 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Publicacion } from '../../../models/Publicacion';
 import { MaterialService } from '../../../services/materialservice';
 import { PublicacionService } from '../../../services/publicacionservice';
 import { obtenerMensajeBackend } from '../../../utils/backend-error';
+import { API_BASE_URL } from '../../../config/api.config';
 
 @Component({
   selector: 'app-publicacion-explore',
@@ -29,6 +30,7 @@ export class PublicacionExplore implements OnInit {
   constructor(
     private readonly publicacionService: PublicacionService,
     private readonly materialService: MaterialService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -36,6 +38,32 @@ export class PublicacionExplore implements OnInit {
       next: (categorias) => (this.categorias = categorias),
     });
     this.cargarActivas();
+  }
+
+  obtenerImagenPublicacion(publicacion: Publicacion): string {
+    if (!publicacion.imagenesJson) {
+      return '';
+    }
+
+    try {
+      const imagenes = JSON.parse(publicacion.imagenesJson);
+      const url = Array.isArray(imagenes) ? imagenes[0]?.url : imagenes?.url;
+      return this.normalizarUrlImagen(url);
+    } catch {
+      return this.normalizarUrlImagen(publicacion.imagenesJson);
+    }
+  }
+
+  private normalizarUrlImagen(url?: string): string {
+    if (!url) {
+      return '';
+    }
+
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+      return url;
+    }
+
+    return `${API_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
   }
 
   cargarActivas(): void {
@@ -46,10 +74,12 @@ export class PublicacionExplore implements OnInit {
         this.todasPublicaciones = publicaciones;
         this.aplicarFiltros();
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
         this.cargando = false;
+        this.cdr.detectChanges();
       },
     });
   }

@@ -17,6 +17,16 @@ export class AuthService {
   private readonly userNameKey = 'qhurinet_user_name';
   private readonly userPointsKey = 'qhurinet_user_points';
   private readonly rememberKey = 'qhurinet_remember_session';
+  private readonly rutasPorRol: Record<string, string> = {
+  ADMIN: '/verificacion/admin',
+  GENERADOR: '/publicaciones/explorar',
+  EMISOR: '/publicaciones/explorar',
+  RECOLECTOR: '/resumen',
+  BODEGA: '/resumen',
+  USER: '/resumen',
+};
+
+private readonly prioridadRoles = ['ADMIN', 'RECOLECTOR', 'BODEGA', 'GENERADOR', 'EMISOR', 'USER'];
 
   constructor(private readonly http: HttpClient) {}
 
@@ -60,12 +70,15 @@ export class AuthService {
   }
 
   guardarUsuario(usuario: Usuario): void {
-    const recordar = this.recordarSesion();
-    this.setStorageValue(this.userIdKey, String(usuario.id), recordar);
-    this.setStorageValue(this.userNameKey, usuario.nombre || usuario.username, recordar);
-    this.setStorageValue(this.userRoleKey, this.normalizarRol(usuario.roles?.[0] ?? 'USER'), recordar);
-    this.setStorageValue(this.userPointsKey, this.getCurrentUserPoints().toString(), recordar);
-  }
+  const recordar = this.recordarSesion();
+  const roles = this.extraerRolesUsuario(usuario);
+  const rolPrincipal = this.obtenerRolPrincipal(roles);
+
+  this.setStorageValue(this.userIdKey, String(usuario.id), recordar);
+  this.setStorageValue(this.userNameKey, usuario.nombre || usuario.username, recordar);
+  this.setStorageValue(this.userRoleKey, rolPrincipal, recordar);
+  this.setStorageValue(this.userPointsKey, this.getCurrentUserPoints().toString(), recordar);
+}
 
   limpiarSesion(): void {
     [
@@ -131,8 +144,9 @@ export class AuthService {
   }
 
   rutaDespuesDeLogin(): string {
-    return '/resumen';
-  }
+  const rolPrincipal = this.obtenerRolPrincipal(this.getRoles());
+  return this.rutasPorRol[rolPrincipal] ?? '/resumen';
+}
 
   recordarSesion(): boolean {
     return this.getStorageValue(this.rememberKey) === 'true';
@@ -197,7 +211,33 @@ export class AuthService {
     return Number.isFinite(numberValue) && numberValue > 0 ? numberValue : null;
   }
 
+  private extraerRolesUsuario(usuario: Usuario): string[] {
+  const roles = (usuario.roles ?? [])
+    .map((role) => this.normalizarRol(role))
+    .filter(Boolean);
+
+  const tipoCuenta = this.normalizarRol(usuario.tipoCuenta ?? '');
+
+  if (tipoCuenta && (!roles.length || roles.every((role) => role === 'USER'))) {
+    return [tipoCuenta];
+  }
+
+  return roles.length ? roles : ['USER'];
+  }
+
+  private obtenerRolPrincipal(roles: string[]): string {
+    const normalizados = roles.map((role) => this.normalizarRol(role)).filter(Boolean);
+
+    return this.prioridadRoles.find((role) => normalizados.includes(role)) ?? normalizados[0] ?? 'USER';
+  }
+
   private normalizarRol(role: string): string {
-    return role.replace('ROLE_', '').trim().toUpperCase();
+    const normalizado = role.replace('ROLE_', '').trim().toUpperCase();
+
+    if (normalizado === 'EMISOR') {
+      return 'GENERADOR';
+    }
+
+    return normalizado;
   }
 }
