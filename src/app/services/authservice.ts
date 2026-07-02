@@ -70,15 +70,15 @@ private readonly prioridadRoles = ['ADMIN', 'RECOLECTOR', 'BODEGA', 'GENERADOR',
   }
 
   guardarUsuario(usuario: Usuario): void {
-  const recordar = this.recordarSesion();
-  const roles = this.extraerRolesUsuario(usuario);
-  const rolPrincipal = this.obtenerRolPrincipal(roles);
+    const recordar = this.recordarSesion();
+    const roles = this.extraerRolesUsuario(usuario);
+    const rolPrincipal = this.obtenerRolPrincipal(roles);
 
-  this.setStorageValue(this.userIdKey, String(usuario.id), recordar);
-  this.setStorageValue(this.userNameKey, usuario.nombre || usuario.username, recordar);
-  this.setStorageValue(this.userRoleKey, rolPrincipal, recordar);
-  this.setStorageValue(this.userPointsKey, this.getCurrentUserPoints().toString(), recordar);
-}
+    this.setStorageValue(this.userIdKey, String(usuario.id), recordar);
+    this.setStorageValue(this.userNameKey, usuario.nombre || usuario.username, recordar);
+    this.setStorageValue(this.userRoleKey, rolPrincipal, recordar);
+    this.setStorageValue(this.userPointsKey, String(usuario.puntosTotales ?? 0), recordar);
+  }
 
   limpiarSesion(): void {
     [

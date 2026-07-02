@@ -1,7 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { forkJoin } from 'rxjs';
 import { Incentivo, UsuarioIncentivo, ValorPuntosAccion } from '../../../models/Incentivo';
 import { AuthService } from '../../../services/authservice';
 import { IncentivoService } from '../../../services/incentivoservice';
@@ -55,6 +54,7 @@ export class IncentivoListComponent implements OnInit {
   constructor(
     private readonly incentivoService: IncentivoService,
     private readonly authService: AuthService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -63,31 +63,63 @@ export class IncentivoListComponent implements OnInit {
 
   cargar(): void {
     const idUsuario = this.authService.getCurrentUserId();
+
     this.mensajeError = '';
     this.mensajeExito = '';
 
     if (!idUsuario) {
       this.mensajeError = 'No se pudo identificar al usuario autenticado.';
       this.cargando = false;
+      this.cdr.detectChanges();
       return;
     }
 
     this.cargando = true;
-    forkJoin({
-      incentivos: this.incentivoService.listarActivos(),
-      historial: this.incentivoService.listarPorUsuario(idUsuario),
-      valoresPuntos: this.incentivoService.listarValorPuntos(),
-    }).subscribe({
-      next: ({ incentivos, historial, valoresPuntos }) => {
-        this.incentivos = incentivos;
-        this.historial = historial;
-        this.valoresPuntos = valoresPuntos.length ? valoresPuntos : this.valoresPuntosBase;
+    this.cdr.detectChanges();
+
+    this.cargarIncentivos();
+    this.cargarHistorial(idUsuario);
+    this.cargarValoresPuntos();
+  }
+
+  private cargarIncentivos(): void {
+    this.incentivoService.listarActivos().subscribe({
+      next: (incentivos) => {
+        this.incentivos = incentivos ?? [];
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
+        this.incentivos = [];
         this.mensajeError = obtenerMensajeBackend(error);
-        this.valoresPuntos = this.valoresPuntosBase;
         this.cargando = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private cargarHistorial(idUsuario: number): void {
+    this.incentivoService.listarPorUsuario(idUsuario).subscribe({
+      next: (historial) => {
+        this.historial = historial ?? [];
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.historial = [];
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  private cargarValoresPuntos(): void {
+    this.incentivoService.listarValorPuntos().subscribe({
+      next: (valoresPuntos) => {
+        this.valoresPuntos = valoresPuntos?.length ? valoresPuntos : this.valoresPuntosBase;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.valoresPuntos = this.valoresPuntosBase;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -185,15 +217,19 @@ export class IncentivoListComponent implements OnInit {
     }
 
     this.procesandoId = incentivo.id;
+    this.cdr.detectChanges();
     this.incentivoService.canjear({ idUsuario, idIncentivo: incentivo.id }).subscribe({
       next: () => {
         this.procesandoId = null;
+        this.seleccionado = null;
         this.mensajeExito = 'Incentivo canjeado correctamente.';
+        this.cdr.detectChanges();
         this.cargar();
       },
       error: (error) => {
         this.procesandoId = null;
         this.mensajeError = obtenerMensajeBackend(error);
+        this.cdr.detectChanges();
       },
     });
   }

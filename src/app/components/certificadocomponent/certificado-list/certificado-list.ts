@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
 import { Certificado } from '../../../models/Certificado';
@@ -25,6 +25,7 @@ export class CertificadoListComponent implements OnInit {
   constructor(
     private readonly certificadoService: CertificadoService,
     private readonly authService: AuthService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -37,6 +38,7 @@ export class CertificadoListComponent implements OnInit {
     if (!idUsuario) {
       this.mensajeError = 'No se pudo identificar al usuario autenticado.';
       this.cargando = false;
+      this.cdr.detectChanges();
       return;
     }
 
@@ -51,10 +53,12 @@ export class CertificadoListComponent implements OnInit {
         this.certificados = certificados;
         this.propios = propios;
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
         this.cargando = false;
+        this.cdr.detectChanges();
       },
     });
   }

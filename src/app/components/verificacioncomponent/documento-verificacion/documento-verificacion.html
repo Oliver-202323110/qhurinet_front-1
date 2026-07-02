@@ -83,7 +83,10 @@
             @if (documento.motivoRechazo) {
               <small class="field-error">{{ documento.motivoRechazo }}</small>
             }
-            <a [href]="documento.urlArchivo" target="_blank" rel="noopener" class="link-button">Ver archivo</a>
+            @if (obtenerUrlArchivo(documento); as archivoUrl) {
+              <img [src]="archivoUrl" [alt]="documento.tipo" class="document-preview" />
+              <a [href]="archivoUrl" target="_blank" rel="noopener" class="link-button">Ver archivo</a>
+            }
           </article>
         }
       </div>

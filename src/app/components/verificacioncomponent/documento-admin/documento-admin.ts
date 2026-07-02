@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { DocumentoVerificacion } from '../../../models/DocumentoVerificacion';
 import { DocumentoVerificacionService } from '../../../services/documentoverificacionservice';
@@ -21,7 +21,7 @@ export class DocumentoAdminComponent implements OnInit {
   mensajeError = '';
   mensajeExito = '';
 
-  constructor(private readonly documentoService: DocumentoVerificacionService) {}
+  constructor(private readonly documentoService: DocumentoVerificacionService, private readonly cdr: ChangeDetectorRef,) {}
 
   ngOnInit(): void {
     this.cargar();
@@ -40,10 +40,12 @@ export class DocumentoAdminComponent implements OnInit {
       next: (documentos) => {
         this.documentos = documentos;
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
         this.cargando = false;
+        this.cdr.detectChanges();
       },
     });
   }

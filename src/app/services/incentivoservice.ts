@@ -42,14 +42,32 @@ export class IncentivoService {
   }
 
   listarPorUsuario(idUsuario: number): Observable<UsuarioIncentivo[]> {
-    return this.http.get<UsuarioIncentivo[] | null>(`${this.usuarioIncentivoUrl}/usuario/${idUsuario}`).pipe(
-      map((incentivos) => incentivos ?? []),
-      catchError((error: HttpErrorResponse) => (error.status === 204 ? of([]) : throwError(() => error))),
+    return this.http.get<any[] | null>(`${this.usuarioIncentivoUrl}/progreso/${idUsuario}`).pipe(
+      map((items) =>
+        (items ?? []).map((item) => ({
+          id: item.idUsuarioIncentivo ?? 0,
+          idUsuario,
+          idIncentivo: item.idIncentivo ?? 0,
+          incentivoNombre: item.nombre ?? 'Incentivo',
+          estado: item.estado ?? 'en_progreso',
+          puntosCanjeados: 0,
+          codigoCanje: '',
+          fechaCanje: item.completadoEn ?? '',
+          fechaVencimiento: '',
+          completado: item.estado === 'reclamado' || item.estado === 'completado',
+        })),
+      ),
+      catchError((error: HttpErrorResponse) =>
+        error.status === 204 || error.status === 404 ? of([]) : throwError(() => error),
+      ),
     );
   }
 
-  canjear(request: CanjeIncentivoRequest): Observable<UsuarioIncentivo> {
-    return this.http.post<UsuarioIncentivo>(`${this.usuarioIncentivoUrl}/canjear`, request);
+  canjear(request: CanjeIncentivoRequest): Observable<any> {
+    return this.http.post<any>(
+      `${this.apiUrl}/${request.idIncentivo}/canjear/${request.idUsuario}`,
+      {},
+    );
   }
 
   listarValorPuntos(): Observable<ValorPuntosAccion[]> {

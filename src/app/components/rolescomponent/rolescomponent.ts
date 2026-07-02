@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Rol } from '../../models/Rol';
 import { Usuario } from '../../models/Usuario';
@@ -26,6 +26,7 @@ export class RolesComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly rolService: RolService,
     private readonly usuarioService: UsuarioService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -39,10 +40,12 @@ export class RolesComponent implements OnInit {
       next: (roles) => {
         this.roles = roles;
         this.cargarUsuarios();
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
         this.cargando = false;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -56,10 +59,12 @@ export class RolesComponent implements OnInit {
           return acc;
         }, {});
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
         this.cargando = false;
+        this.cdr.detectChanges();
       },
     });
   }

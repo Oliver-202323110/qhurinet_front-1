@@ -7,6 +7,7 @@ export interface Usuario {
   createdAt?: string;
   roles: string[];
   tipoCuenta?: string;
+  puntosTotales?: number;
 }
 
 export interface UsuarioPerfil {

@@ -19,8 +19,8 @@
   } @else if (perfil) {
     <div class="two-column">
       <aside class="panel profile-card">
-        @if (perfil.fotoUrl) {
-          <img [src]="perfil.fotoUrl" alt="Foto de perfil" class="profile-photo" />
+        @if (obtenerFotoPerfil(); as fotoUrl) {
+          <img [src]="fotoUrl" alt="Foto de perfil" class="profile-photo" />
         } @else {
           <div class="profile-avatar">{{ inicial() }}</div>
         }
