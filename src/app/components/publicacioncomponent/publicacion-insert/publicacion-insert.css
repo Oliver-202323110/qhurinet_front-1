@@ -1,3 +1,36 @@
 :host {
   display: block;
 }
+
+.publication-map {
+  width: 100%;
+  height: 360px;
+  border-radius: 18px;
+  border: 1px solid #cfe3d7;
+  overflow: hidden;
+  margin-top: 10px;
+  margin-bottom: 16px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.06);
+}
+
+.coordinates-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(220px, 1fr));
+  gap: 16px;
+}
+
+.btn-sm {
+  min-height: 38px;
+  padding: 0 14px;
+  font-size: 0.95rem;
+}
+
+@media (max-width: 800px) {
+  .coordinates-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .publication-map {
+    height: 300px;
+  }
+}
