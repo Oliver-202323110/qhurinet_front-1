@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { DocumentoVerificacion } from '../../../models/DocumentoVerificacion';
 import { DocumentoVerificacionService } from '../../../services/documentoverificacionservice';
 import { obtenerMensajeBackend } from '../../../utils/backend-error';
+import { API_BASE_URL } from '../../../config/api.config';
 
 @Component({
   selector: 'app-documento-admin',
@@ -115,5 +116,25 @@ export class DocumentoAdminComponent implements OnInit {
 
   esImagen(url: string): boolean {
     return /\.(jpe?g|png|webp|gif)(\?.*)?$/i.test(url);
+  }
+
+  obtenerUrlArchivo(documento: DocumentoVerificacion | null): string {
+    if (!documento?.urlArchivo) {
+      return '';
+    }
+
+    return this.normalizarUrlArchivo(documento.urlArchivo);
+  }
+
+  private normalizarUrlArchivo(url: string): string {
+    if (!url) {
+      return '';
+    }
+
+    if (url.startsWith('http://') || url.startsWith('https://') || url.startsWith('data:')) {
+      return url;
+    }
+
+    return `${API_BASE_URL}${url.startsWith('/') ? url : `/${url}`}`;
   }
 }

@@ -64,10 +64,15 @@
       <article class="modal-card" (click)="$event.stopPropagation()">
         <h3>Revisar documento</h3>
         <p>{{ seleccionado.usuarioNombre }} · {{ seleccionado.tipo }}</p>
-        @if (esImagen(seleccionado.urlArchivo)) {
-          <img [src]="seleccionado.urlArchivo" alt="Documento enviado" class="preview-image" />
+        @if (obtenerUrlArchivo(seleccionado); as archivoUrl) {
+          @if (esImagen(archivoUrl)) {
+            <img [src]="archivoUrl" alt="Documento enviado" class="preview-image" />
+          }
+
+          <a [href]="archivoUrl" target="_blank" rel="noopener" class="btn btn-soft">
+            Abrir archivo
+          </a>
         }
-        <a [href]="seleccionado.urlArchivo" target="_blank" rel="noopener" class="btn btn-soft">Abrir archivo</a>
         <div class="field">
           <label for="motivo">Motivo de rechazo</label>
           <textarea id="motivo" rows="3" [(ngModel)]="motivoRechazo"></textarea>
