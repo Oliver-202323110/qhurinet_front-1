@@ -1235,3 +1235,40 @@ a {
   font-size: 0.9rem;
   font-weight: 900;
 }
+
+.qhurinet-publicacion-marker,
+.qhurinet-origen-marker {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 4px solid #ffffff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+.qhurinet-publicacion-marker {
+  background: #159447;
+}
+
+.qhurinet-origen-marker {
+  background: #1d4ed8;
+}
+
+.qhurinet-publicacion-marker span,
+.qhurinet-origen-marker span {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 900;
+}
+
+.route-popup-button {
+  margin-top: 8px;
+  padding: 7px 11px;
+  border: none;
+  border-radius: 8px;
+  background: #159447;
+  color: white;
+  font-weight: 800;
+  cursor: pointer;
+}

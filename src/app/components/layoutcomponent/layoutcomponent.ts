@@ -46,6 +46,11 @@ export class LayoutComponent {
       path: '/perfil',
     },
     {
+      label: 'Rutas de recojo',
+      path: '/rutas-recojo',
+      roles: ['RECOLECTOR', 'BODEGA', 'ADMIN'],
+    },
+    {
       label: 'Certificados',
       path: '/certificados',
       roles: ['RECOLECTOR', 'BODEGA', 'ADMIN'],
