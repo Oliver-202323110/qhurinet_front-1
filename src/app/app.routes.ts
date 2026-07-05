@@ -19,6 +19,7 @@ import { RolesComponent } from './components/rolescomponent/rolescomponent';
 import { TransaccionDineroListComponent } from './components/transacciondinerocomponent/transaccion-dinero-list/transaccion-dinero-list';
 import { DocumentoAdminComponent } from './components/verificacioncomponent/documento-admin/documento-admin';
 import { DocumentoVerificacionComponent } from './components/verificacioncomponent/documento-verificacion/documento-verificacion';
+import { Reportescomponent } from './components/reportescomponent/reportescomponent';
 import { authGuard } from './guards/auth.guard';
 import { publicGuard } from './guards/public.guard';
 import { roleGuard } from './guards/role.guard';
@@ -82,6 +83,12 @@ export const routes: Routes = [
         component: DocumentoAdminComponent,
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] },
+      },
+      {
+        path: 'reportes',
+        component: Reportescomponent,
+        canActivate: [roleGuard],
+        data: { roles: ['ADMIN', 'GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA'] },
       },
       {
         path: 'roles',

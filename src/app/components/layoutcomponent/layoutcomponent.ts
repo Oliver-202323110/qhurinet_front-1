@@ -75,6 +75,11 @@ export class LayoutComponent {
       path: '/roles',
       roles: ['ADMIN'],
     },
+    {
+      label: 'Reportes',
+      path: '/reportes',
+      roles: ['ADMIN', 'GENERADOR', 'EMISOR', 'RECOLECTOR', 'BODEGA'],
+    },
   ];
 
   constructor(
