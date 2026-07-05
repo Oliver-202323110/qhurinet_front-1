@@ -1,0 +1,70 @@
+<section class="rutas-page">
+  <span class="section-badge">Rutas</span>
+
+  <div class="page-heading">
+    <div>
+      <h2>Rutas de recojo</h2>
+      <p>Selecciona tu ubicación y traza una ruta hacia una publicación disponible.</p>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn btn-soft" (click)="usarMiUbicacion()">
+        Usar mi ubicación
+      </button>
+
+      <button type="button" class="btn btn-soft" (click)="limpiarRuta()">
+        Limpiar ruta
+      </button>
+
+      <button type="button" class="btn btn-primary" (click)="cargarPublicaciones()">
+        Actualizar
+      </button>
+    </div>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+
+  <div class="info-grid">
+    <article class="info-card">
+      <span>Publicaciones disponibles</span>
+      <strong>{{ publicaciones.length }}</strong>
+    </article>
+
+    <article class="info-card">
+      <span>Distancia estimada</span>
+      <strong>{{ rutaTrazada ? distanciaKm + ' km' : '-' }}</strong>
+    </article>
+
+    <article class="info-card">
+      <span>Tiempo estimado</span>
+      <strong>{{ rutaTrazada ? tiempoMin + ' min' : '-' }}</strong>
+    </article>
+
+    <article class="info-card">
+      <span>Punto seleccionado</span>
+      <strong>{{ publicacionSeleccionada?.titulo || 'Ninguno' }}</strong>
+    </article>
+  </div>
+
+  <div class="map-card">
+    <div class="map-header">
+      <div>
+        <h3>Mapa de publicaciones</h3>
+        <p>Haz clic en el mapa para marcar tu ubicación o selecciona una publicación para trazar ruta.</p>
+      </div>
+    </div>
+
+    <div id="mapa-rutas-recojo" class="rutas-map"></div>
+  </div>
+
+  @if (cargando) {
+    <p class="loading-text">Cargando publicaciones...</p>
+  } @else if (publicaciones.length === 0) {
+    <div class="empty-card">
+      <strong>No hay publicaciones disponibles.</strong>
+      <p>Cuando los emisores publiquen materiales, aparecerán aquí.</p>
+    </div>
+  }
+</section>

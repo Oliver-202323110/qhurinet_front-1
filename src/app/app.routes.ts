@@ -20,6 +20,7 @@ import { TransaccionDineroListComponent } from './components/transacciondineroco
 import { DocumentoAdminComponent } from './components/verificacioncomponent/documento-admin/documento-admin';
 import { DocumentoVerificacionComponent } from './components/verificacioncomponent/documento-verificacion/documento-verificacion';
 import { Reportescomponent } from './components/reportescomponent/reportescomponent';
+import { RutasRecojoComponent } from './components/rutasrecojocomponent/rutasrecojocomponent';
 import { authGuard } from './guards/auth.guard';
 import { publicGuard } from './guards/public.guard';
 import { roleGuard } from './guards/role.guard';
@@ -105,6 +106,12 @@ export const routes: Routes = [
         component: Publicacionmaterialcomponent,
         canActivate: [roleGuard],
         data: { roles: ['ADMIN'] },
+      },
+      {
+        path: 'rutas-recojo',
+        component: RutasRecojoComponent,
+        canActivate: [roleGuard],
+        data: { roles: ['RECOLECTOR', 'BODEGA', 'ADMIN'] },
       },
       {
         path: 'publicaciones',

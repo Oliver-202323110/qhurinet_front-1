@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { Publicacion } from '../../models/Publicacion';
 import { AuthService } from '../../services/authservice';
@@ -20,6 +20,7 @@ export class ResumenComponent implements OnInit {
   constructor(
     private readonly authService: AuthService,
     private readonly publicacionService: PublicacionService,
+    private readonly cdr: ChangeDetectorRef,
   ) {}
 
   ngOnInit(): void {
@@ -35,6 +36,7 @@ export class ResumenComponent implements OnInit {
       next: (publicaciones) => {
         this.publicaciones = publicaciones;
         this.cargando = false;
+        this.cdr.detectChanges();
       },
       error: (error) => {
         this.mensajeError = obtenerMensajeBackend(error);
