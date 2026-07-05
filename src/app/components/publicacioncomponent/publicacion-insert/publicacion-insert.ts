@@ -1,5 +1,15 @@
-import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, OnInit, inject } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  DestroyRef,
+  Inject,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+  inject,
+} from '@angular/core';
 import {
   AbstractControl,
   FormArray,
@@ -29,7 +39,7 @@ import { obtenerMensajeBackend } from '../../../utils/backend-error';
   templateUrl: './publicacion-insert.html',
   styleUrl: './publicacion-insert.css',
 })
-export class PublicacionInsert implements OnInit {
+export class PublicacionInsert implements OnInit, AfterViewInit, OnDestroy {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -43,6 +53,10 @@ export class PublicacionInsert implements OnInit {
   mensajeExito = '';
   mensajeError = '';
   advertencias: string[] = [];
+  private L?: any;
+  private mapa?: any;
+  private marcador?: any;
+  readonly centroInicial: [number, number] = [-12.0464, -77.0428];
 
   readonly form = this.fb.group({
     titulo: ['', [Validators.required, Validators.maxLength(150)]],
@@ -60,10 +74,28 @@ export class PublicacionInsert implements OnInit {
     private readonly archivoService: ArchivoService,
     private readonly authService: AuthService,
     private readonly router: Router,
+    private readonly cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private readonly platformId: Object,
   ) {}
 
   ngOnInit(): void {
     this.cargarMateriales();
+  }
+
+  ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    setTimeout(() => {
+      void this.inicializarMapa();
+    }, 0);
+  }
+
+  ngOnDestroy(): void {
+    this.mapa?.remove();
+    this.mapa = undefined;
+    this.marcador = undefined;
   }
 
   get materialesArray(): FormArray {
@@ -268,6 +300,126 @@ export class PublicacionInsert implements OnInit {
   formatoTamano(bytes: number): string {
     const mb = bytes / (1024 * 1024);
     return `${mb.toFixed(mb >= 1 ? 1 : 2)} MB`;
+  }
+
+  private async inicializarMapa(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const contenedorMapa = document.getElementById('mapa-publicacion');
+
+    if (!contenedorMapa || this.mapa) {
+      return;
+    }
+
+    this.L = await import('leaflet');
+    const L = this.L;
+
+    const latitudInicial = Number(this.form.get('latitud')?.value) || -12.0464;
+    const longitudInicial = Number(this.form.get('longitud')?.value) || -77.0428;
+
+    this.mapa = L.map(contenedorMapa).setView([latitudInicial, longitudInicial], 13);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(this.mapa);
+
+    this.mapa.on('click', (event: any) => {
+      this.seleccionarUbicacion(event.latlng.lat, event.latlng.lng);
+    });
+
+    this.seleccionarUbicacion(latitudInicial, longitudInicial, false);
+
+    setTimeout(() => {
+      this.mapa?.invalidateSize();
+    }, 300);
+  }
+
+seleccionarUbicacion(latitud: number, longitud: number, centrar: boolean = true): void {
+  const latitudRedondeada = Number(latitud.toFixed(6));
+  const longitudRedondeada = Number(longitud.toFixed(6));
+
+  this.form.patchValue({
+    latitud: String(latitudRedondeada),
+    longitud: String(longitudRedondeada),
+  });
+
+  this.form.get('latitud')?.markAsDirty();
+  this.form.get('longitud')?.markAsDirty();
+  this.form.get('latitud')?.updateValueAndValidity();
+  this.form.get('longitud')?.updateValueAndValidity();
+
+  if (!this.mapa || !this.L) {
+    this.cdr.detectChanges();
+    return;
+  }
+
+  const L = this.L;
+  const posicion: [number, number] = [latitudRedondeada, longitudRedondeada];
+
+  if (!this.marcador) {
+    const opcionesMarcador: any = {
+      draggable: true,
+    };
+
+    const icono = this.crearIconoMarcador();
+
+    if (icono) {
+      opcionesMarcador.icon = icono;
+    }
+
+    this.marcador = L.marker(posicion, opcionesMarcador).addTo(this.mapa);
+
+    this.marcador.on('dragend', () => {
+      const nuevaPosicion = this.marcador?.getLatLng();
+
+      if (!nuevaPosicion) {
+        return;
+      }
+
+      this.seleccionarUbicacion(nuevaPosicion.lat, nuevaPosicion.lng, false);
+    });
+  } else {
+    this.marcador.setLatLng(posicion);
+  }
+
+  if (centrar) {
+    this.mapa.setView(posicion, this.mapa.getZoom());
+  }
+
+  this.cdr.detectChanges();
+}
+
+  usarMiUbicacion(): void {
+    if (!isPlatformBrowser(this.platformId) || !navigator.geolocation) {
+      this.mensajeError = 'Tu navegador no permite obtener la ubicación actual.';
+      this.cdr.detectChanges();
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (posicion) => {
+        this.seleccionarUbicacion(posicion.coords.latitude, posicion.coords.longitude);
+      },
+      () => {
+        this.mensajeError = 'No se pudo obtener tu ubicación actual.';
+        this.cdr.detectChanges();
+      },
+    );
+  }
+
+  private crearIconoMarcador(): any {
+    if (!this.L) {
+      return undefined;
+    }
+
+    return this.L.divIcon({
+      className: 'qhurinet-map-marker',
+      html: '<span>●</span>',
+      iconSize: [34, 34],
+      iconAnchor: [17, 17],
+    });
   }
 
   private crearGrupoMaterial(material: Material): FormGroup {

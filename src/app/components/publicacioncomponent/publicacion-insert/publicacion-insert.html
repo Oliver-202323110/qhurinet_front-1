@@ -67,34 +67,51 @@
         }
       </div>
 
-      <div class="field">
-        <label for="latitud">Latitud *</label>
-        <input
-          id="latitud"
-          type="number"
-          step="0.000001"
-          formControlName="latitud"
-          placeholder="-12.0464"
-          [class.invalid]="campoInvalido('latitud')"
-        />
-        @if (campoInvalido('latitud')) {
-          <small class="field-error">{{ mensajeCampo('latitud') }}</small>
-        }
-      </div>
+      <div class="field full">
+        <div class="label-row">
+          <label>Ubicación en el mapa *</label>
+          <button type="button" class="btn btn-soft btn-sm" (click)="usarMiUbicacion()">
+            Usar mi ubicación
+          </button>
+        </div>
 
-      <div class="field">
-        <label for="longitud">Longitud *</label>
-        <input
-          id="longitud"
-          type="number"
-          step="0.000001"
-          formControlName="longitud"
-          placeholder="-77.0428"
-          [class.invalid]="campoInvalido('longitud')"
-        />
-        @if (campoInvalido('longitud')) {
-          <small class="field-error">{{ mensajeCampo('longitud') }}</small>
-        }
+        <p class="muted">
+          Haz clic en el mapa o arrastra el marcador para seleccionar el punto de recojo.
+        </p>
+
+        <div id="mapa-publicacion" class="publication-map"></div>
+
+        <div class="coordinates-grid">
+          <div class="field">
+            <label for="latitud">Latitud *</label>
+            <input
+              id="latitud"
+              type="number"
+              step="0.000001"
+              formControlName="latitud"
+              readonly
+              [class.invalid]="campoInvalido('latitud')"
+            />
+            @if (campoInvalido('latitud')) {
+              <small class="field-error">{{ mensajeCampo('latitud') }}</small>
+            }
+          </div>
+
+          <div class="field">
+            <label for="longitud">Longitud *</label>
+            <input
+              id="longitud"
+              type="number"
+              step="0.000001"
+              formControlName="longitud"
+              readonly
+              [class.invalid]="campoInvalido('longitud')"
+            />
+            @if (campoInvalido('longitud')) {
+              <small class="field-error">{{ mensajeCampo('longitud') }}</small>
+            }
+          </div>
+        </div>
       </div>
     </div>
 
