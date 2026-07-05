@@ -31,7 +31,11 @@ export class PublicacionExplore implements OnInit, AfterViewInit, OnDestroy {
   mensajeError = '';
   texto = '';
   categoriaSeleccionada = '';
-
+  publicacionSeleccionada: Publicacion | null = null;
+  materialesDetalle: any[] = [];
+  detalleVisible = false;
+  detalleCargando = false;
+  detalleError = '';
   paginaActual = 1;
   elementosPorPagina = 6;
   totalPaginas = 1;
@@ -93,6 +97,25 @@ export class PublicacionExplore implements OnInit, AfterViewInit, OnDestroy {
 
     this.grupoMarcadores = L.layerGroup().addTo(this.mapa);
 
+    this.mapa.on('popupopen', (event: any) => {
+    const boton = event.popup
+      .getElement()
+      ?.querySelector('.popup-detail-button') as HTMLButtonElement | null;
+
+    if (!boton) {
+      return;
+    }
+
+    boton.addEventListener('click', () => {
+      const id = Number(boton.dataset['publicacionId']);
+
+      if (!Number.isNaN(id)) {
+        this.abrirDetalleMapa(id);
+        this.mapa?.closePopup();
+      }
+    });
+  });
+
     setTimeout(() => {
       this.mapa?.invalidateSize();
       this.actualizarMarcadoresMapa();
@@ -134,11 +157,17 @@ export class PublicacionExplore implements OnInit, AfterViewInit, OnDestroy {
       });
 
       marcador.bindPopup(`
-        <strong>${publicacion.titulo || 'Publicación'}</strong><br>
-        ${publicacion.direccion || 'Sin dirección'}<br>
-        <small>${publicacion.material || 'Material no especificado'}</small><br>
-        <a href="/publicaciones/detalle/${publicacion.id}">Ver detalle</a>
-      `);
+      <strong>${this.escaparHtml(publicacion.titulo || 'Publicación')}</strong><br>
+      ${this.escaparHtml(publicacion.direccion || 'Sin dirección')}<br>
+      <small>${this.escaparHtml(publicacion.material || 'Material no especificado')}</small><br>
+      <button
+        type="button"
+        class="popup-detail-button"
+        data-publicacion-id="${publicacion.id}"
+      >
+        Ver detalle
+      </button>
+    `);
 
       marcador.addTo(this.grupoMarcadores);
       bounds.push([latitud, longitud]);
@@ -298,5 +327,54 @@ export class PublicacionExplore implements OnInit, AfterViewInit, OnDestroy {
 
   private paginar(): void {
     this.aplicarFiltros();
+  }
+
+  abrirDetalleMapa(idPublicacion: number): void {
+    const publicacion = this.todasPublicaciones.find((item) => item.id === idPublicacion);
+
+    if (!publicacion) {
+      this.detalleError = 'No se encontró la publicación seleccionada.';
+      this.detalleVisible = true;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    this.publicacionSeleccionada = publicacion;
+    this.materialesDetalle = [];
+    this.detalleVisible = true;
+    this.detalleCargando = true;
+    this.detalleError = '';
+    this.cdr.detectChanges();
+
+    this.publicacionService.obtenerDetalle(idPublicacion).subscribe({
+      next: (detalle) => {
+        this.materialesDetalle = detalle.materiales ?? [];
+        this.detalleCargando = false;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        this.detalleError = obtenerMensajeBackend(error);
+        this.detalleCargando = false;
+        this.cdr.detectChanges();
+      },
+    });
+  }
+
+  cerrarDetalleMapa(): void {
+    this.detalleVisible = false;
+    this.publicacionSeleccionada = null;
+    this.materialesDetalle = [];
+    this.detalleError = '';
+    this.detalleCargando = false;
+    this.cdr.detectChanges();
+  }
+
+  private escaparHtml(valor: string): string {
+    return valor
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#039;');
   }
 }

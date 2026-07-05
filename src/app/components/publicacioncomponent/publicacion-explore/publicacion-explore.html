@@ -83,3 +83,72 @@
     }
   }
 </section>
+@if (detalleVisible && publicacionSeleccionada) {
+  <div class="detail-backdrop" (click)="cerrarDetalleMapa()">
+    <section class="detail-modal" (click)="$event.stopPropagation()">
+      <div class="detail-header">
+        <div>
+          <span class="section-badge">Detalle</span>
+          <h3>{{ publicacionSeleccionada.titulo }}</h3>
+          <p>{{ publicacionSeleccionada.direccion }}</p>
+        </div>
+
+        <button type="button" class="close-button" (click)="cerrarDetalleMapa()">×</button>
+      </div>
+
+      @if (obtenerImagenPublicacion(publicacionSeleccionada); as imagenUrl) {
+        <img [src]="imagenUrl" [alt]="publicacionSeleccionada.titulo" class="detail-image" />
+      }
+
+      <div class="detail-grid">
+        <div>
+          <strong>Material</strong>
+          <span>{{ publicacionSeleccionada.material || 'No especificado' }}</span>
+        </div>
+
+        <div>
+          <strong>Categoría</strong>
+          <span>{{ publicacionSeleccionada.categoria || 'Sin categoría' }}</span>
+        </div>
+
+        <div>
+          <strong>Estado</strong>
+          <span>{{ publicacionSeleccionada.activo ? 'Disponible' : 'Inactiva' }}</span>
+        </div>
+
+        <div>
+          <strong>Ubicación</strong>
+          <span>{{ publicacionSeleccionada.latitud }}, {{ publicacionSeleccionada.longitud }}</span>
+        </div>
+      </div>
+
+      @if (detalleCargando) {
+        <p class="loading-text">Cargando materiales...</p>
+      }
+
+      @if (detalleError) {
+        <div class="alert alert-error">{{ detalleError }}</div>
+      }
+
+      @if (materialesDetalle.length > 0) {
+        <div class="detail-materials">
+          <h4>Materiales asociados</h4>
+
+          @for (material of materialesDetalle; track material.idMaterial || material.nombreMaterial) {
+            <div class="material-detail-row">
+              <span>
+                {{ material.nombreMaterial || material.material || 'Material' }}
+              </span>
+
+              <strong>
+                {{ material.cantidad || 0 }} {{ material.unidad || 'kg' }}
+              </strong>
+            </div>
+          }
+        </div>
+      } @else if (!detalleCargando) {
+        <p class="empty-text">No hay materiales asociados para mostrar.</p>
+      }
+    </section>
+  </div>
+}
