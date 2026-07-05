@@ -1218,3 +1218,20 @@ a {
   font-size: 18px;
   line-height: 1;
 }
+
+.qhurinet-publicacion-marker {
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #159447;
+  border: 4px solid #ffffff;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.28);
+}
+
+.qhurinet-publicacion-marker span {
+  color: #ffffff;
+  font-size: 0.9rem;
+  font-weight: 900;
+}

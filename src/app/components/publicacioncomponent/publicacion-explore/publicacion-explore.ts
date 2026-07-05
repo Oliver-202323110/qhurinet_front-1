@@ -1,5 +1,13 @@
-import { CommonModule } from '@angular/common';
-import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
+import {
+  AfterViewInit,
+  ChangeDetectorRef,
+  Component,
+  Inject,
+  OnDestroy,
+  OnInit,
+  PLATFORM_ID,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { Publicacion } from '../../../models/Publicacion';
@@ -14,8 +22,9 @@ import { API_BASE_URL } from '../../../config/api.config';
   templateUrl: './publicacion-explore.html',
   styleUrl: './publicacion-explore.css',
 })
-export class PublicacionExplore implements OnInit {
+export class PublicacionExplore implements OnInit, AfterViewInit, OnDestroy {
   todasPublicaciones: Publicacion[] = [];
+  publicacionesFiltradas: Publicacion[] = [];
   publicaciones: Publicacion[] = [];
   categorias: string[] = [];
   cargando = true;
@@ -26,11 +35,17 @@ export class PublicacionExplore implements OnInit {
   paginaActual = 1;
   elementosPorPagina = 6;
   totalPaginas = 1;
+  private L?: any;
+  private mapa?: any;
+  private grupoMarcadores?: any;
+
+  readonly centroInicial: [number, number] = [-12.0464, -77.0428];
 
   constructor(
     private readonly publicacionService: PublicacionService,
     private readonly materialService: MaterialService,
     private readonly cdr: ChangeDetectorRef,
+    @Inject(PLATFORM_ID) private readonly platformId: Object,
   ) {}
 
   ngOnInit(): void {
@@ -38,6 +53,122 @@ export class PublicacionExplore implements OnInit {
       next: (categorias) => (this.categorias = categorias),
     });
     this.cargarActivas();
+  }
+
+  ngAfterViewInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    setTimeout(() => {
+      void this.inicializarMapa();
+    }, 0);
+  }
+
+  ngOnDestroy(): void {
+    this.mapa?.remove();
+    this.mapa = undefined;
+    this.grupoMarcadores = undefined;
+  }
+
+  private async inicializarMapa(): Promise<void> {
+    if (!isPlatformBrowser(this.platformId)) {
+      return;
+    }
+
+    const contenedorMapa = document.getElementById('mapa-explorar-publicaciones');
+
+    if (!contenedorMapa || this.mapa) {
+      return;
+    }
+
+    this.L = await import('leaflet');
+    const L = this.L;
+
+    this.mapa = L.map(contenedorMapa).setView(this.centroInicial, 12);
+
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '&copy; OpenStreetMap contributors',
+    }).addTo(this.mapa);
+
+    this.grupoMarcadores = L.layerGroup().addTo(this.mapa);
+
+    setTimeout(() => {
+      this.mapa?.invalidateSize();
+      this.actualizarMarcadoresMapa();
+    }, 300);
+  }
+
+  private actualizarMarcadoresMapa(): void {
+    if (!this.mapa || !this.L || !this.grupoMarcadores) {
+      return;
+    }
+
+    const L = this.L;
+
+    this.grupoMarcadores.clearLayers();
+
+    const publicacionesConUbicacion = this.publicacionesFiltradas.filter((publicacion) => {
+      return publicacion.latitud !== null &&
+        publicacion.latitud !== undefined &&
+        publicacion.longitud !== null &&
+        publicacion.longitud !== undefined;
+    });
+
+    if (publicacionesConUbicacion.length === 0) {
+      return;
+    }
+
+    const bounds: any[] = [];
+
+    publicacionesConUbicacion.forEach((publicacion) => {
+      const latitud = Number(publicacion.latitud);
+      const longitud = Number(publicacion.longitud);
+
+      if (Number.isNaN(latitud) || Number.isNaN(longitud)) {
+        return;
+      }
+
+      const marcador = L.marker([latitud, longitud], {
+        icon: this.crearIconoPublicacion(),
+      });
+
+      marcador.bindPopup(`
+        <strong>${publicacion.titulo || 'Publicación'}</strong><br>
+        ${publicacion.direccion || 'Sin dirección'}<br>
+        <small>${publicacion.material || 'Material no especificado'}</small><br>
+        <a href="/publicaciones/detalle/${publicacion.id}">Ver detalle</a>
+      `);
+
+      marcador.addTo(this.grupoMarcadores);
+      bounds.push([latitud, longitud]);
+    });
+
+    if (bounds.length === 1) {
+      this.mapa.setView(bounds[0], 15);
+    }
+
+    if (bounds.length > 1) {
+      this.mapa.fitBounds(bounds, {
+        padding: [40, 40],
+      });
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  private crearIconoPublicacion(): any {
+    if (!this.L) {
+      return undefined;
+    }
+
+    return this.L.divIcon({
+      className: 'qhurinet-publicacion-marker',
+      html: '<span>Q</span>',
+      iconSize: [36, 36],
+      iconAnchor: [18, 18],
+      popupAnchor: [0, -18],
+    });
   }
 
   obtenerImagenPublicacion(publicacion: Publicacion): string {
@@ -71,7 +202,7 @@ export class PublicacionExplore implements OnInit {
     this.mensajeError = '';
     this.publicacionService.listarActivas().subscribe({
       next: (publicaciones) => {
-        this.todasPublicaciones = publicaciones;
+        this.todasPublicaciones = publicaciones ?? [];
         this.aplicarFiltros();
         this.cargando = false;
         this.cdr.detectChanges();
@@ -89,6 +220,7 @@ export class PublicacionExplore implements OnInit {
 
     if (!texto && !this.categoriaSeleccionada) {
       this.cargarActivas();
+      this.actualizarMarcadoresMapa();
       return;
     }
 
@@ -96,13 +228,15 @@ export class PublicacionExplore implements OnInit {
       this.cargando = true;
       this.publicacionService.buscar(texto).subscribe({
         next: (publicaciones) => {
-          this.todasPublicaciones = publicaciones;
+          this.todasPublicaciones = publicaciones ?? [];
           this.aplicarFiltros();
           this.cargando = false;
+          this.cdr.detectChanges();
         },
         error: (error) => {
           this.mensajeError = obtenerMensajeBackend(error);
           this.cargando = false;
+          this.cdr.detectChanges();
         },
       });
     } else {
@@ -138,15 +272,17 @@ export class PublicacionExplore implements OnInit {
   }
 
   private aplicarFiltros(): void {
-    let filtradas = this.todasPublicaciones;
+    let filtradas = [...this.todasPublicaciones];
 
     if (this.categoriaSeleccionada) {
       filtradas = filtradas.filter(
-        (p) => p.categoria.toLowerCase() === this.categoriaSeleccionada.toLowerCase(),
+        (p) =>
+          (p.categoria ?? '').toLowerCase() === this.categoriaSeleccionada.toLowerCase(),
       );
     }
 
-    this.todasPublicaciones = this.todasPublicaciones;
+    this.publicacionesFiltradas = filtradas;
+
     this.totalPaginas = Math.max(1, Math.ceil(filtradas.length / this.elementosPorPagina));
 
     if (this.paginaActual > this.totalPaginas) {
@@ -155,6 +291,9 @@ export class PublicacionExplore implements OnInit {
 
     const inicio = (this.paginaActual - 1) * this.elementosPorPagina;
     this.publicaciones = filtradas.slice(inicio, inicio + this.elementosPorPagina);
+
+    this.actualizarMarcadoresMapa();
+    this.cdr.detectChanges();
   }
 
   private paginar(): void {

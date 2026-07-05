@@ -14,3 +14,43 @@
   min-width: 42px;
   padding: 8px 12px;
 }
+
+.map-card {
+  background: #ffffff;
+  border: 1px solid #d9e7df;
+  border-radius: 18px;
+  padding: 20px;
+  margin: 24px 0;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.05);
+}
+
+.map-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.map-header h3 {
+  margin: 0;
+}
+
+.map-header p {
+  margin: 6px 0 0;
+  color: #315746;
+}
+
+.explore-map {
+  width: 100%;
+  height: 420px;
+  border-radius: 16px;
+  border: 1px solid #cfe3d7;
+  overflow: hidden;
+}
+
+@media (max-width: 800px) {
+  .explore-map {
+    height: 320px;
+  }
+}
