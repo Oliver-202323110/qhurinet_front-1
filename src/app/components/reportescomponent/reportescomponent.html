@@ -1,0 +1,261 @@
+<section class="report-page">
+  <span class="section-badge">Reportes</span>
+
+  <div class="page-heading">
+    <div>
+      <h2>Reportes y estadísticas</h2>
+      <p>Consulta indicadores de publicaciones, materiales, actividades y puntos.</p>
+    </div>
+
+    <button type="button" class="btn btn-soft" (click)="cargar()">Actualizar</button>
+  </div>
+
+  @if (mensajeError) {
+    <div class="alert alert-error">{{ mensajeError }}</div>
+  }
+
+  @if (cargando) {
+    <p class="loading-text">Cargando reportes...</p>
+  } @else {
+    @if (reporteUsuario) {
+      <div class="stats-grid">
+        <article class="stat-card">
+          <span>Mis publicaciones</span>
+          <strong>{{ reporteUsuario.publicaciones }}</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>Mis recolecciones</span>
+          <strong>{{ reporteUsuario.recolecciones }}</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>Puntos movidos</span>
+          <strong>{{ reporteUsuario.puntosMovidos }}</strong>
+        </article>
+
+        <article class="stat-card">
+          <span>Materiales registrados</span>
+          <strong>{{ historialMateriales.length }}</strong>
+        </article>
+      </div>
+    }
+
+    @if (esAdmin && globales) {
+      <div class="card">
+        <h3>Reporte general del sistema</h3>
+
+        <div class="stats-grid compact">
+          <article class="stat-card">
+            <span>Publicaciones</span>
+            <strong>{{ globales.publicaciones }}</strong>
+          </article>
+
+          <article class="stat-card">
+            <span>Recolecciones</span>
+            <strong>{{ globales.recolecciones }}</strong>
+          </article>
+
+          <article class="stat-card">
+            <span>Materiales registrados</span>
+            <strong>{{ globales.materialesRegistrados }}</strong>
+          </article>
+
+          <article class="stat-card">
+            <span>Transacciones puntos</span>
+            <strong>{{ globales.puntosTransacciones }}</strong>
+          </article>
+
+          <article class="stat-card">
+            <span>Calificaciones</span>
+            <strong>{{ globales.calificaciones }}</strong>
+          </article>
+        </div>
+      </div>
+    }
+
+    <div class="reports-grid">
+      <div class="card">
+        <h3>Gráfico de materiales por categoría</h3>
+        <p class="chart-description">Visualiza qué categorías concentran más kilogramos registrados.</p>
+
+        @if (materiales.length > 0) {
+          <div class="bar-chart">
+            @for (item of materiales; track item.categoria) {
+              <div class="bar-item">
+                <div class="bar-label">
+                  <strong>{{ item.categoria }}</strong>
+                  <span>{{ item.cantidadKg }} kg</span>
+                </div>
+
+                <div class="bar-track">
+                  <div class="bar-fill" [style.width.%]="porcentajeKg(item.cantidadKg)"></div>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-text">Aún no hay datos para graficar materiales.</p>
+        }
+      </div>
+
+      <div class="card">
+        <h3>Gráfico de actividad del usuario</h3>
+        <p class="chart-description">Compara las principales métricas de participación del usuario.</p>
+
+        @if (actividadUsuarioGrafico.length > 0) {
+          <div class="vertical-chart">
+            @for (item of actividadUsuarioGrafico; track item.nombre) {
+              <div class="vertical-item">
+                <div class="vertical-bar-wrapper">
+                  <div class="vertical-bar" [style.height.%]="porcentajeActividad(item.valor)">
+                    <span>{{ item.valor }}</span>
+                  </div>
+                </div>
+                <strong>{{ item.nombre }}</strong>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="empty-text">Aún no hay datos de actividad para graficar.</p>
+        }
+      </div>
+    </div>
+
+    <div class="reports-grid">
+      <div class="card">
+        <h3>Materiales reciclados por categoría</h3>
+
+        @if (materiales.length > 0) {
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Categoría</th>
+                <th>Kg registrados</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of materiales; track item.categoria) {
+                <tr>
+                  <td>{{ item.categoria }}</td>
+                  <td>{{ item.cantidadKg }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="empty-text">Aún no hay materiales reciclados registrados.</p>
+        }
+      </div>
+
+      <div class="card">
+        <h3>Historial de mis materiales</h3>
+
+        @if (historialMateriales.length > 0) {
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th>Material</th>
+                <th>Categoría</th>
+                <th>Cantidad</th>
+                <th>Última publicación</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of historialMateriales; track item.material + item.categoria) {
+                <tr>
+                  <td>{{ item.material }}</td>
+                  <td>{{ item.categoria }}</td>
+                  <td>{{ item.cantidad }}</td>
+                  <td>{{ formatearFecha(item.ultimaPublicacion) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        } @else {
+          <p class="empty-text">Aún no tienes historial de materiales.</p>
+        }
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <h3>Historial de actividades</h3>
+          <p>Filtra por fecha, estado o material.</p>
+        </div>
+      </div>
+
+      <div class="filter-row">
+        <input type="date" [(ngModel)]="filtroFechaInicio" />
+        <input type="date" [(ngModel)]="filtroFechaFin" />
+
+        <select [(ngModel)]="filtroEstado">
+          <option value="">Todos los estados</option>
+          <option value="programada">Programada</option>
+          <option value="completada">Completada</option>
+          <option value="cancelada">Cancelada</option>
+        </select>
+
+        <input type="text" placeholder="Material" [(ngModel)]="filtroMaterial" />
+
+        <button type="button" class="btn btn-primary" (click)="aplicarFiltros()">Filtrar</button>
+        <button type="button" class="btn btn-soft" (click)="limpiarFiltros()">Limpiar</button>
+      </div>
+
+      @if (historialActividades.length > 0) {
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Estado</th>
+              <th>Publicación</th>
+              <th>Recolector</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (item of historialActividades; track item.id) {
+              <tr>
+                <td>{{ formatearFecha(item.fechaProgramada || item.createdAt) }}</td>
+                <td>{{ item.estado || '-' }}</td>
+                <td>{{ item.publicacionTitulo || item.tituloPublicacion || '-' }}</td>
+                <td>{{ item.recolectorNombre || '-' }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="empty-text">No hay actividades con los filtros seleccionados.</p>
+      }
+    </div>
+
+    <div class="card">
+      <h3>Historial de puntos</h3>
+
+      @if (historialPuntos.length > 0) {
+        <table class="report-table">
+          <thead>
+            <tr>
+              <th>Fecha</th>
+              <th>Tipo</th>
+              <th>Motivo</th>
+              <th>Puntos</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (tx of historialPuntos; track tx.id) {
+              <tr>
+                <td>{{ formatearFecha(tx.createdAt) }}</td>
+                <td>{{ tx.tipo }}</td>
+                <td>{{ tx.motivo }}</td>
+                <td>{{ tx.puntos }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      } @else {
+        <p class="empty-text">Aún no tienes movimientos de puntos.</p>
+      }
+    </div>
+  }
+</section>
