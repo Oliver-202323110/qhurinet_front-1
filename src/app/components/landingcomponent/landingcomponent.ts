@@ -36,7 +36,8 @@ export class LandingComponent implements OnInit {
 
   private async loadLeafletAndMap(): Promise<void> {
     // Importación dinámica: Leaflet solo se descargará en el cliente
-    const L = await import('leaflet');
+    const leafletModule = await import('leaflet');
+    const L = (leafletModule as any).default ?? leafletModule;
 
     // 1. Inicializar el mapa
     this.map = L.map('map-id').setView([this.puntoRecojo.lat, this.puntoRecojo.lng], 14);

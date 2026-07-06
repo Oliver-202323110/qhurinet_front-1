@@ -313,8 +313,9 @@ export class PublicacionInsert implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    this.L = await import('leaflet');
-    const L = this.L;
+    const leafletModule = await import('leaflet');
+    const L = (leafletModule as any).default ?? leafletModule;
+    this.L = L;
 
     const latitudInicial = Number(this.form.get('latitud')?.value) || -12.0464;
     const longitudInicial = Number(this.form.get('longitud')?.value) || -77.0428;
