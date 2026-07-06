@@ -217,8 +217,9 @@ export class RutasRecojoComponent implements OnInit, AfterViewInit, OnDestroy {
       return;
     }
 
-    this.L = await import('leaflet');
-    const L = this.L;
+    const leafletModule = await import('leaflet');
+    const L = (leafletModule as any).default ?? leafletModule;
+    this.L = L;
 
     this.mapa = L.map(contenedorMapa).setView(this.centroInicial, 12);
 
